@@ -1,11 +1,11 @@
-import { beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { beforeAll, afterAll, afterEach, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 
 // Create a test-specific Prisma client
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test?schema=public',
+      url: process.env.DATABASE_URL || 'postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler',
     },
   },
 });
@@ -27,33 +27,57 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-beforeEach(async () => {
-  // Clean up test data before each test
-  // This ensures test isolation
-  // Order matters due to foreign key constraints
-  await prisma.auditLog.deleteMany();
-  await prisma.notification.deleteMany();
-  await prisma.activityAttachment.deleteMany();
-  await prisma.resourceAssignment.deleteMany();
-  await prisma.importMapping.deleteMany();
-  await prisma.workflowHistory.deleteMany();
-  await prisma.workflowApproval.deleteMany();
-  await prisma.lookaheadVersion.deleteMany();
-  await prisma.lookaheadActivity.deleteMany();
-  await prisma.lookaheadSchedule.deleteMany();
-  await prisma.scheduleBaseline.deleteMany();
-  await prisma.scheduleActivity.deleteMany();
-  await prisma.schedule.deleteMany();
-  await prisma.projectMember.deleteMany();
-  await prisma.projectSettings.deleteMany();
-  await prisma.project.deleteMany();
-  await prisma.staffMember.deleteMany();
-  await prisma.userPermission.deleteMany();
-  await prisma.rolePermission.deleteMany();
-  await prisma.permission.deleteMany();
-  await prisma.role.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.company.deleteMany();
+/**
+ * Clean up all test data from the database
+ * Order matters due to foreign key constraints - delete children before parents
+ */
+async function cleanDatabase() {
+  // Use a transaction for atomic cleanup
+  await prisma.$transaction(async (tx) => {
+    // First level: Tables with no dependents or only self-references
+    await tx.auditLog.deleteMany();
+    await tx.notification.deleteMany();
+    await tx.workflowHistory.deleteMany();
+    
+    // Second level: Tables that depend on first level
+    await tx.activityAttachment.deleteMany();
+    await tx.resourceAssignment.deleteMany();
+    await tx.workflowApproval.deleteMany();
+    await tx.lookaheadVersion.deleteMany();
+    await tx.lookaheadActivity.deleteMany();
+    await tx.scheduleBaseline.deleteMany();
+    await tx.importMapping.deleteMany();
+    
+    // Third level: Tables that depend on second level
+    await tx.scheduleActivity.deleteMany();
+    await tx.lookaheadSchedule.deleteMany();
+    
+    // Fourth level: Schedule depends on project and user
+    await tx.schedule.deleteMany();
+    
+    // Fifth level: Project-related tables
+    await tx.projectMember.deleteMany();
+    await tx.projectSettings.deleteMany();
+    await tx.project.deleteMany();
+    
+    // Sixth level: User-related tables
+    await tx.staffMember.deleteMany();
+    await tx.userPermission.deleteMany();
+    await tx.user.deleteMany();
+    
+    // Seventh level: Role and permission tables
+    await tx.rolePermission.deleteMany();
+    await tx.permission.deleteMany();
+    await tx.role.deleteMany();
+    
+    // Eighth level: Company (root level)
+    await tx.company.deleteMany();
+  });
+}
+
+// Clean up after each test to ensure isolation
+afterEach(async () => {
+  await cleanDatabase();
 });
 
-export { prisma };
+export { prisma, cleanDatabase };

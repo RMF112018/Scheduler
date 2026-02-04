@@ -1,29 +1,53 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   ToggleButton,
   ToggleButtonGroup,
   CircularProgress,
   Alert,
+  Button,
+  Drawer,
 } from '@mui/material';
-import { CalendarMonth as CalendarIcon, List as ListIcon } from '@mui/icons-material';
+import {
+  CalendarMonth as CalendarIcon,
+  List as ListIcon,
+  Commit as CommitIcon,
+} from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '@store/index';
-import { fetchLookahead, setViewMode } from '@store/slices/lookaheadSlice';
+import {
+  fetchLookahead,
+  setViewMode,
+  markTaskStatus,
+  checkConflicts,
+} from '@store/slices/lookaheadSlice';
+import CalendarView from './CalendarView';
+import TaskListView from './TaskListView';
+import ConflictAlertPanel from './ConflictAlertPanel';
+import CommitConfirmationModal from './CommitConfirmationModal';
 
 const LookaheadView: React.FC = () => {
   const { lookaheadId } = useParams<{ lookaheadId: string }>();
   const dispatch = useAppDispatch();
   const { current, loading, error, viewMode } = useAppSelector((state) => state.lookahead);
 
+  // Local state
+  const [commitModalOpen, setCommitModalOpen] = useState(false);
+  const [issuesPanelOpen, setIssuesPanelOpen] = useState(false);
+
   useEffect(() => {
     if (lookaheadId) {
       dispatch(fetchLookahead(lookaheadId));
     }
   }, [lookaheadId, dispatch]);
+
+  // Refresh conflicts when lookahead changes
+  useEffect(() => {
+    if (current?.id) {
+      dispatch(checkConflicts({ lookaheadId: current.id }));
+    }
+  }, [current?.id, dispatch]);
 
   const handleViewModeChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -32,6 +56,41 @@ const LookaheadView: React.FC = () => {
     if (newMode !== null) {
       dispatch(setViewMode(newMode));
     }
+  };
+
+  const handleStatusChange = (activityId: string, status: 'should_do' | 'will_do') => {
+    if (current?.id) {
+      dispatch(markTaskStatus({ lookaheadId: current.id, activityId, status }));
+    }
+  };
+
+  const handleBulkStatusChange = (activityIds: string[], status: 'should_do' | 'will_do') => {
+    if (current?.id) {
+      activityIds.forEach((activityId) => {
+        dispatch(markTaskStatus({ lookaheadId: current.id, activityId, status }));
+      });
+    }
+  };
+
+  const handleActivityClick = (activityId: string) => {
+    // TODO: Navigate to activity detail or open activity modal
+    console.log('Activity clicked:', activityId);
+  };
+
+  const handleRefreshConflicts = () => {
+    if (current?.id) {
+      dispatch(checkConflicts({ lookaheadId: current.id }));
+    }
+  };
+
+  const handleCommit = (attachments: Array<{ type: string; file?: File; note?: string }>) => {
+    // TODO: Implement commit with attachments
+    console.log('Committing with attachments:', attachments);
+    setCommitModalOpen(false);
+  };
+
+  const handleOpenIssuesPanel = () => {
+    setIssuesPanelOpen(true);
   };
 
   if (loading) {
@@ -58,103 +117,141 @@ const LookaheadView: React.FC = () => {
     );
   }
 
+  // Count uncommitted "will do" activities
+  const uncommittedCount = current.activities.filter(
+    (a) => a.plannerStatus === 'will_do' && !a.isCommitted
+  ).length;
+
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">{current.name}</Typography>
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          onChange={handleViewModeChange}
-          aria-label="view mode"
-        >
-          <ToggleButton value="calendar" aria-label="calendar view">
-            <CalendarIcon sx={{ mr: 1 }} />
-            Calendar
-          </ToggleButton>
-          <ToggleButton value="list" aria-label="list view">
-            <ListIcon sx={{ mr: 1 }} />
-            List
-          </ToggleButton>
-        </ToggleButtonGroup>
+      {/* Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+          flexWrap: 'wrap',
+          gap: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h4">{current.name}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {new Date(current.startDate).toLocaleDateString()} -{' '}
+            {new Date(current.endDate).toLocaleDateString()} |{' '}
+            {current.activities.length} activities
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="view mode"
+            size="small"
+          >
+            <ToggleButton value="calendar" aria-label="calendar view">
+              <CalendarIcon sx={{ mr: 1 }} />
+              Calendar
+            </ToggleButton>
+            <ToggleButton value="list" aria-label="list view">
+              <ListIcon sx={{ mr: 1 }} />
+              List
+            </ToggleButton>
+          </ToggleButtonGroup>
+
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<CommitIcon />}
+            onClick={() => setCommitModalOpen(true)}
+            disabled={uncommittedCount === 0 || current.status === 'submitted'}
+          >
+            Commit ({uncommittedCount})
+          </Button>
+        </Box>
       </Box>
 
-      {/* Conflict Alerts */}
+      {/* Conflict Alert Panel */}
       {current.conflicts.length > 0 && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          {current.conflicts.length} conflict(s) detected. Review before committing.
+        <Box sx={{ mb: 3 }}>
+          <ConflictAlertPanel
+            conflicts={current.conflicts}
+            activities={current.activities}
+            onActivityClick={handleActivityClick}
+            onRefresh={handleRefreshConflicts}
+            variant="banner"
+            collapsible
+            defaultExpanded={current.conflicts.filter((c) => c.severity === 'high').length > 0}
+          />
+        </Box>
+      )}
+
+      {/* Status indicator for submitted lookahead */}
+      {current.status === 'submitted' && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          This lookahead has been submitted for approval and is currently locked for editing.
         </Alert>
       )}
 
       {/* View Content */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {viewMode === 'calendar' ? 'Calendar View' : 'List View'}
-          </Typography>
-          <Box
-            sx={{
-              height: 400,
-              bgcolor: 'grey.100',
-              borderRadius: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Typography color="text.secondary">
-              {viewMode === 'calendar'
-                ? 'Calendar View Component - To be implemented in Phase 4'
-                : 'Task List View Component - To be implemented in Phase 4'}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+      {viewMode === 'calendar' ? (
+        <CalendarView
+          activities={current.activities}
+          startDate={current.startDate}
+          endDate={current.endDate}
+          onActivityClick={handleActivityClick}
+          onStatusChange={handleStatusChange}
+        />
+      ) : (
+        <TaskListView
+          activities={current.activities}
+          onActivityClick={handleActivityClick}
+          onStatusChange={handleStatusChange}
+          onBulkStatusChange={handleBulkStatusChange}
+        />
+      )}
 
-      {/* Activities Summary */}
-      <Card sx={{ mt: 3 }}>
-        <CardContent>
+      {/* Commit Confirmation Modal */}
+      <CommitConfirmationModal
+        open={commitModalOpen}
+        onClose={() => setCommitModalOpen(false)}
+        onConfirm={handleCommit}
+        lookaheadId={current.id}
+        lookaheadName={current.name}
+        activities={current.activities}
+        conflicts={current.conflicts}
+        onOpenIssuesPanel={handleOpenIssuesPanel}
+      />
+
+      {/* Issues Panel Drawer */}
+      <Drawer
+        anchor="right"
+        open={issuesPanelOpen}
+        onClose={() => setIssuesPanelOpen(false)}
+        PaperProps={{
+          sx: { width: { xs: '100%', sm: 480 } },
+        }}
+      >
+        <Box sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Activities ({current.activities.length})
+            Schedule Issues
           </Typography>
-          {current.activities.length === 0 ? (
-            <Typography color="text.secondary">No activities in this lookahead</Typography>
-          ) : (
-            <Box>
-              {current.activities.slice(0, 5).map((activity) => (
-                <Box
-                  key={activity.id}
-                  sx={{
-                    p: 2,
-                    mb: 1,
-                    bgcolor: activity.hasConflict ? 'error.light' : 'grey.50',
-                    borderRadius: 1,
-                  }}
-                >
-                  <Typography variant="body1" fontWeight={500}>
-                    {activity.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Status: {activity.plannerStatus || 'Not set'} |
-                    Duration: {activity.duration} days |
-                    {activity.percentComplete}% complete
-                  </Typography>
-                  {activity.hasConflict && (
-                    <Typography variant="caption" color="error">
-                      ⚠️ Conflict detected
-                    </Typography>
-                  )}
-                </Box>
-              ))}
-              {current.activities.length > 5 && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  ... and {current.activities.length - 5} more activities
-                </Typography>
-              )}
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+          <ConflictAlertPanel
+            conflicts={current.conflicts}
+            activities={current.activities}
+            onActivityClick={(activityId) => {
+              handleActivityClick(activityId);
+              setIssuesPanelOpen(false);
+            }}
+            onRefresh={handleRefreshConflicts}
+            variant="panel"
+            collapsible={false}
+          />
+        </Box>
+      </Drawer>
     </Box>
   );
 };
