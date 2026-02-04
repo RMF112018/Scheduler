@@ -1,0 +1,475 @@
+// Prisma Schema for Construction Scheduling Application
+// This schema implements the database design from the development plan
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// User & Auth Models
+// ============================================================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  role         String   @default("user")
+  companyId    String   @map("company_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company              Company              @relation(fields: [companyId], references: [id])
+  projects             Project[]            @relation("ProjectCreator")
+  schedules            Schedule[]           @relation("ScheduleCreator")
+  staffMember          StaffMember?
+  notifications        Notification[]
+  submittedApprovals   WorkflowApproval[]   @relation("ApprovalSubmitter")
+  approvedApprovals    WorkflowApproval[]   @relation("ApprovalApprover")
+  projectMemberships   ProjectMember[]
+  userPermissions      UserPermission[]
+  resourceAssignments  ResourceAssignment[] @relation("AssignmentAssigner")
+  activityAttachments  ActivityAttachment[]
+  lookaheadVersions    LookaheadVersion[]   @relation("VersionApprover")
+
+  @@map("users")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  userPermissions UserPermission[]
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@map("user_permissions")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  permissions    RolePermission[]
+  projectMembers ProjectMember[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================================================
+// Company & Project Models
+// ============================================================================
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users        User[]
+  projects     Project[]
+  staffMembers StaffMember[]
+
+  @@map("companies")
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  companyId   String    @map("company_id")
+  name        String
+  description String?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  status      String    @default("planning")
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdBy   String    @map("created_by")
+
+  // Relations
+  company           Company            @relation(fields: [companyId], references: [id])
+  creator           User               @relation("ProjectCreator", fields: [createdBy], references: [id])
+  schedules         Schedule[]
+  lookaheadSchedules LookaheadSchedule[]
+  members           ProjectMember[]
+  importMappings    ImportMapping[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id])
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+// ============================================================================
+// Schedule Models
+// ============================================================================
+
+model Schedule {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  name        String
+  description String?
+  status      String   @default("draft")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String   @map("created_by")
+
+  // Relations
+  project            Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator            User                @relation("ScheduleCreator", fields: [createdBy], references: [id])
+  activities         ScheduleActivity[]
+  baselines          ScheduleBaseline[]
+  lookaheadSchedules LookaheadSchedule[]
+  importMappings     ImportMapping[]
+
+  @@map("schedules")
+}
+
+model ScheduleActivity {
+  id                     String   @id @default(uuid())
+  scheduleId             String   @map("schedule_id")
+  persistentInternalGuid String   @unique @default(uuid()) @map("persistent_internal_guid")
+  externalGuid           String?  @map("external_guid")
+  activityCode           String?  @map("activity_code")
+  name                   String
+  startDate              DateTime @map("start_date")
+  finishDate             DateTime @map("finish_date")
+  duration               Int
+  percentComplete        Int      @default(0) @map("percent_complete")
+  predecessorIds         String[] @map("predecessor_ids")
+  successorIds           String[] @map("successor_ids")
+  resourceIds            String[] @map("resource_ids")
+  totalFloat             Int?     @map("total_float")
+  isCritical             Boolean  @default(false) @map("is_critical")
+  metadata               Json?
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  schedule            Schedule             @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  resourceAssignments ResourceAssignment[]
+  attachments         ActivityAttachment[]
+
+  @@index([scheduleId])
+  @@index([persistentInternalGuid])
+  @@map("schedule_activities")
+}
+
+model ScheduleBaseline {
+  id           String   @id @default(uuid())
+  scheduleId   String   @map("schedule_id")
+  version      Int
+  snapshotData Json     @map("snapshot_data")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId])
+  @@map("schedule_baselines")
+}
+
+// ============================================================================
+// Lookahead Models
+// ============================================================================
+
+model LookaheadSchedule {
+  id               String    @id @default(uuid())
+  masterScheduleId String    @map("master_schedule_id")
+  projectId        String    @map("project_id")
+  name             String
+  startDate        DateTime  @map("start_date")
+  endDate          DateTime  @map("end_date")
+  status           String    @default("active")
+  lastSyncedAt     DateTime? @map("last_synced_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  masterSchedule     Schedule           @relation(fields: [masterScheduleId], references: [id])
+  project            Project            @relation(fields: [projectId], references: [id])
+  activities         LookaheadActivity[]
+  versions           LookaheadVersion[]
+  workflowApprovals  WorkflowApproval[]
+
+  @@index([projectId])
+  @@index([masterScheduleId])
+  @@map("lookahead_schedules")
+}
+
+model LookaheadActivity {
+  id                     String    @id @default(uuid())
+  lookaheadScheduleId    String    @map("lookahead_schedule_id")
+  persistentInternalGuid String    @map("persistent_internal_guid")
+  name                   String
+  startDate              DateTime  @map("start_date")
+  finishDate             DateTime  @map("finish_date")
+  duration               Int
+  percentComplete        Int       @default(0) @map("percent_complete")
+  plannerStatus          String?   @map("planner_status")
+  plannerUpdatedBy       String?   @map("planner_updated_by")
+  plannerUpdatedAt       DateTime? @map("planner_updated_at")
+  hasConflict            Boolean   @default(false) @map("has_conflict")
+  isCommitted            Boolean   @default(false) @map("is_committed")
+  hasPostCommitTweaks    Boolean   @default(false) @map("has_post_commit_tweaks")
+  metadata               Json?
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  lookaheadSchedule LookaheadSchedule @relation(fields: [lookaheadScheduleId], references: [id], onDelete: Cascade)
+
+  @@index([lookaheadScheduleId])
+  @@index([persistentInternalGuid])
+  @@map("lookahead_activities")
+}
+
+model LookaheadVersion {
+  id                  String   @id @default(uuid())
+  lookaheadScheduleId String   @map("lookahead_schedule_id")
+  versionNumber       Int      @map("version_number")
+  approvedBy          String?  @map("approved_by")
+  approvedAt          DateTime @default(now()) @map("approved_at")
+  snapshotData        Json     @map("snapshot_data")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  // Relations
+  lookaheadSchedule LookaheadSchedule @relation(fields: [lookaheadScheduleId], references: [id], onDelete: Cascade)
+  approver          User?             @relation("VersionApprover", fields: [approvedBy], references: [id])
+
+  @@index([lookaheadScheduleId])
+  @@map("lookahead_versions")
+}
+
+// ============================================================================
+// Workflow Models
+// ============================================================================
+
+model WorkflowApproval {
+  id                  String    @id @default(uuid())
+  lookaheadScheduleId String    @map("lookahead_schedule_id")
+  submittedBy         String    @map("submitted_by")
+  status              String    @default("pending")
+  rejectionReason     String?   @map("rejection_reason")
+  rejectionCategory   String?   @map("rejection_category")
+  approvedBy          String?   @map("approved_by")
+  approvedAt          DateTime? @map("approved_at")
+  commitSnapshot      Json?     @map("commit_snapshot")
+  hasPostCommitTweaks Boolean   @default(false) @map("has_post_commit_tweaks")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  lookaheadSchedule LookaheadSchedule @relation(fields: [lookaheadScheduleId], references: [id], onDelete: Cascade)
+  submitter         User              @relation("ApprovalSubmitter", fields: [submittedBy], references: [id])
+  approver          User?             @relation("ApprovalApprover", fields: [approvedBy], references: [id])
+  history           WorkflowHistory[]
+
+  @@index([lookaheadScheduleId])
+  @@index([status])
+  @@map("workflow_approvals")
+}
+
+model WorkflowHistory {
+  id         String   @id @default(uuid())
+  approvalId String   @map("approval_id")
+  action     String
+  performedBy String  @map("performed_by")
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  approval WorkflowApproval @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+
+  @@index([approvalId])
+  @@map("workflow_history")
+}
+
+// ============================================================================
+// Import Mapping Models
+// ============================================================================
+
+model ImportMapping {
+  id                     String   @id @default(uuid())
+  projectId              String   @map("project_id")
+  externalId             String   @map("external_id")
+  persistentInternalGuid String   @map("persistent_internal_guid")
+  scheduleId             String   @map("schedule_id")
+  firstImportedAt        DateTime @default(now()) @map("first_imported_at")
+  lastImportedAt         DateTime @default(now()) @map("last_imported_at")
+
+  // Relations
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, externalId])
+  @@index([persistentInternalGuid])
+  @@map("import_mappings")
+}
+
+// ============================================================================
+// Staff & Resource Models
+// ============================================================================
+
+model StaffMember {
+  id             String   @id @default(uuid())
+  companyId      String   @map("company_id")
+  userId         String?  @unique @map("user_id")
+  firstName      String   @map("first_name")
+  lastName       String   @map("last_name")
+  role           String
+  certifications String[]
+  hourlyRate     Decimal? @map("hourly_rate") @db.Decimal(10, 2)
+  isActive       Boolean  @default(true) @map("is_active")
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company             Company              @relation(fields: [companyId], references: [id])
+  user                User?                @relation(fields: [userId], references: [id])
+  resourceAssignments ResourceAssignment[]
+
+  @@index([companyId])
+  @@map("staff_members")
+}
+
+model ResourceAssignment {
+  id                 String   @id @default(uuid())
+  scheduleActivityId String   @map("schedule_activity_id")
+  staffMemberId      String   @map("staff_member_id")
+  assignmentType     String   @default("manual") @map("assignment_type")
+  hoursAllocated     Decimal? @map("hours_allocated") @db.Decimal(10, 2)
+  hoursActual        Decimal? @map("hours_actual") @db.Decimal(10, 2)
+  assignedAt         DateTime @default(now()) @map("assigned_at")
+  assignedBy         String   @map("assigned_by")
+
+  // Relations
+  activity    ScheduleActivity @relation(fields: [scheduleActivityId], references: [id], onDelete: Cascade)
+  staffMember StaffMember      @relation(fields: [staffMemberId], references: [id])
+  assigner    User             @relation("AssignmentAssigner", fields: [assignedBy], references: [id])
+
+  @@index([scheduleActivityId])
+  @@index([staffMemberId])
+  @@map("resource_assignments")
+}
+
+// ============================================================================
+// Attachment Models
+// ============================================================================
+
+model ActivityAttachment {
+  id                     String   @id @default(uuid())
+  persistentInternalGuid String   @map("persistent_internal_guid")
+  attachmentType         String   @map("attachment_type")
+  filePath               String?  @map("file_path")
+  fileName               String?  @map("file_name")
+  uploadedBy             String   @map("uploaded_by")
+  uploadedAt             DateTime @default(now()) @map("uploaded_at")
+  metadata               Json?
+
+  // Relations
+  activity ScheduleActivity @relation(fields: [persistentInternalGuid], references: [persistentInternalGuid], onDelete: Cascade)
+  uploader User             @relation(fields: [uploadedBy], references: [id])
+
+  @@index([persistentInternalGuid])
+  @@map("activity_attachments")
+}
+
+// ============================================================================
+// Notification Models
+// ============================================================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String
+  title     String
+  message   String
+  actionUrl String?  @map("action_url")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+// ============================================================================
+// Audit Log Models
+// ============================================================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  oldData    Json?    @map("old_data")
+  newData    Json?    @map("new_data")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
