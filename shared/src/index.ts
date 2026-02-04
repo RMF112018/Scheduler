@@ -62,6 +62,15 @@ export interface Project {
 
 export type ProjectStatus = 'planning' | 'active' | 'on_hold' | 'completed' | 'archived';
 
+export interface ProjectSettings {
+  id: string;
+  projectId: string;
+  useRetainedLogic: boolean;  // Enable P6-style retained logic CPM calculation
+  progressOverride: boolean;  // Allow progress override in calculations
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ============================================================================
 // Schedule Types
 // ============================================================================
@@ -101,7 +110,18 @@ export interface ScheduleActivity {
   metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+  // Actual progress tracking
+  actualStartDate?: string;
+  actualFinishDate?: string;
+  // Out-of-sequence tracking
+  outOfSequenceStatus?: OutOfSequenceStatus;
+  outOfSequenceReason?: string;
+  outOfSequenceResolvedBy?: string;
+  outOfSequenceResolvedAt?: string;
+  outOfSequenceAttachmentId?: string;
 }
+
+export type OutOfSequenceStatus = 'detected' | 'acknowledged' | 'resolved';
 
 export interface Baseline {
   id: string;
@@ -331,4 +351,88 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+// ============================================================================
+// Schedule Validation Types
+// ============================================================================
+
+export type ValidationRuleSeverity = 'error' | 'warning' | 'info';
+
+export type ValidationRuleType =
+  | 'missing_logic'
+  | 'negative_float'
+  | 'high_duration'
+  | 'high_float'
+  | 'invalid_constraint'
+  | 'dangling_activity'
+  | 'out_of_sequence'
+  | 'circular_dependency';
+
+export interface ValidationIssue {
+  ruleType: ValidationRuleType;
+  severity: ValidationRuleSeverity;
+  activityId: string;
+  activityName: string;
+  persistentInternalGuid: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+export interface OutOfSequenceViolation {
+  activityId: string;
+  activityName: string;
+  persistentInternalGuid: string;
+  violationType: 'actual_start_before_predecessor' | 'actual_finish_before_predecessor';
+  predecessorId: string;
+  predecessorName: string;
+  activityActualDate: string;
+  predecessorActualFinish: string | null;
+  message: string;
+}
+
+export interface ValidationResult {
+  scheduleId: string;
+  isValid: boolean;
+  totalIssues: number;
+  errorCount: number;
+  warningCount: number;
+  infoCount: number;
+  issues: ValidationIssue[];
+  outOfSequenceViolations: OutOfSequenceViolation[];
+  validatedAt: string;
+}
+
+export interface ValidationSummary {
+  totalActivities: number;
+  outOfSequenceCount: number;
+  missingLogicCount: number;
+  negativeFloatCount: number;
+  highDurationCount: number;
+  highFloatCount: number;
+}
+
+// ============================================================================
+// Attachment Types
+// ============================================================================
+
+export type AttachmentStatus = 'pending' | 'approved' | 'rejected';
+export type AttachmentSourceType = 'master' | 'lookahead';
+
+export interface ActivityAttachment {
+  id: string;
+  persistentInternalGuid: string;
+  attachmentType: string;
+  filePath?: string;
+  fileName?: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  metadata?: Record<string, unknown>;
+  // Approval gating fields
+  status: AttachmentStatus;
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectionReason?: string;
+  sourceType: AttachmentSourceType;
+  lookaheadApprovalId?: string;
 }

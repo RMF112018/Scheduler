@@ -128,14 +128,29 @@ model Project {
   createdBy   String    @map("created_by")
 
   // Relations
-  company           Company            @relation(fields: [companyId], references: [id])
-  creator           User               @relation("ProjectCreator", fields: [createdBy], references: [id])
-  schedules         Schedule[]
+  company            Company            @relation(fields: [companyId], references: [id])
+  creator            User               @relation("ProjectCreator", fields: [createdBy], references: [id])
+  schedules          Schedule[]
   lookaheadSchedules LookaheadSchedule[]
-  members           ProjectMember[]
-  importMappings    ImportMapping[]
+  members            ProjectMember[]
+  importMappings     ImportMapping[]
+  settings           ProjectSettings?
 
   @@map("projects")
+}
+
+model ProjectSettings {
+  id               String   @id @default(uuid())
+  projectId        String   @unique @map("project_id")
+  useRetainedLogic Boolean  @default(true) @map("use_retained_logic")
+  progressOverride Boolean  @default(false) @map("progress_override")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_settings")
 }
 
 model ProjectMember {
@@ -199,6 +214,17 @@ model ScheduleActivity {
   metadata               Json?
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
+
+  // Actual progress tracking
+  actualStartDate  DateTime? @map("actual_start_date")
+  actualFinishDate DateTime? @map("actual_finish_date")
+
+  // Out-of-sequence tracking
+  outOfSequenceStatus       String?   @map("out_of_sequence_status") // 'detected' | 'acknowledged' | 'resolved'
+  outOfSequenceReason       String?   @map("out_of_sequence_reason")
+  outOfSequenceResolvedBy   String?   @map("out_of_sequence_resolved_by")
+  outOfSequenceResolvedAt   DateTime? @map("out_of_sequence_resolved_at")
+  outOfSequenceAttachmentId String?   @map("out_of_sequence_attachment_id")
 
   // Relations
   schedule            Schedule             @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
@@ -422,11 +448,20 @@ model ActivityAttachment {
   uploadedAt             DateTime @default(now()) @map("uploaded_at")
   metadata               Json?
 
+  // Approval gating fields
+  status              String    @default("pending") // 'pending' | 'approved' | 'rejected'
+  approvedBy          String?   @map("approved_by")
+  approvedAt          DateTime? @map("approved_at")
+  rejectionReason     String?   @map("rejection_reason")
+  sourceType          String    @default("master") @map("source_type") // 'master' | 'lookahead'
+  lookaheadApprovalId String?   @map("lookahead_approval_id")
+
   // Relations
   activity ScheduleActivity @relation(fields: [persistentInternalGuid], references: [persistentInternalGuid], onDelete: Cascade)
   uploader User             @relation(fields: [uploadedBy], references: [id])
 
   @@index([persistentInternalGuid])
+  @@index([status])
   @@map("activity_attachments")
 }
 

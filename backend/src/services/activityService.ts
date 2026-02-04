@@ -37,6 +37,8 @@ export interface ActivityNode {
   id: string;
   name: string;
   duration: number;
+  remainingDuration: number; // Remaining duration after progress (for retained logic)
+  percentComplete: number;
   predecessorIds: string[];
   successorIds: string[];
   earlyStart: number; // ES - earliest start (days from project start)
@@ -52,6 +54,11 @@ export interface CriticalPathResult {
   criticalPath: string[]; // Activity IDs in order
   projectDuration: number; // Total project duration in days
   activities: ActivityNode[];
+  useRetainedLogic: boolean; // Whether retained logic was used in calculation
+}
+
+export interface CriticalPathOptions {
+  useRetainedLogic?: boolean; // If undefined, will use project settings
 }
 
 /**
@@ -267,10 +274,30 @@ export class ActivityService {
   /**
    * Calculate critical path for a schedule using CPM (Critical Path Method)
    * Uses forward and backward pass to calculate ES, EF, LS, LF, and float
+   * 
+   * Retained Logic (P6-style):
+   * - For in-progress activities (0 < percentComplete < 100), uses remaining duration
+   * - remainingDuration = duration * (1 - percentComplete / 100)
+   * - Completed activities (percentComplete = 100) have remainingDuration = 0
+   * - Not-started activities (percentComplete = 0) use full duration
    */
-  async calculateCriticalPath(scheduleId: string): Promise<CriticalPathResult> {
+  async calculateCriticalPath(
+    scheduleId: string,
+    options: CriticalPathOptions = {}
+  ): Promise<CriticalPathResult> {
     const activities = await prisma.scheduleActivity.findMany({
       where: { scheduleId },
+      include: {
+        schedule: {
+          include: {
+            project: {
+              include: {
+                settings: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (activities.length === 0) {
@@ -278,16 +305,38 @@ export class ActivityService {
         criticalPath: [],
         projectDuration: 0,
         activities: [],
+        useRetainedLogic: false,
       };
     }
+
+    // Determine whether to use retained logic
+    // Priority: explicit option > project settings > default (true)
+    const projectSettings = activities[0]?.schedule?.project?.settings;
+    const useRetainedLogic = options.useRetainedLogic ?? projectSettings?.useRetainedLogic ?? true;
 
     // Build activity nodes map
     const nodes = new Map<string, ActivityNode>();
     for (const activity of activities) {
+      // Calculate remaining duration for retained logic
+      let remainingDuration = activity.duration;
+      
+      if (useRetainedLogic) {
+        if (activity.percentComplete >= 100) {
+          // Completed activities have no remaining duration
+          remainingDuration = 0;
+        } else if (activity.percentComplete > 0) {
+          // In-progress: remaining = duration * (1 - percentComplete/100)
+          remainingDuration = Math.ceil(activity.duration * (1 - activity.percentComplete / 100));
+        }
+        // Not started (percentComplete = 0): use full duration
+      }
+
       nodes.set(activity.id, {
         id: activity.id,
         name: activity.name,
         duration: activity.duration,
+        remainingDuration,
+        percentComplete: activity.percentComplete,
         predecessorIds: activity.predecessorIds,
         successorIds: activity.successorIds,
         earlyStart: 0,
@@ -304,6 +353,7 @@ export class ActivityService {
     const sortedIds = this.topologicalSort(nodes);
 
     // Forward Pass - Calculate Early Start (ES) and Early Finish (EF)
+    // When using retained logic, EF = ES + remainingDuration
     for (const id of sortedIds) {
       const node = nodes.get(id)!;
       
@@ -319,8 +369,9 @@ export class ActivityService {
         );
       }
       
-      // EF = ES + Duration
-      node.earlyFinish = node.earlyStart + node.duration;
+      // EF = ES + Duration (or remainingDuration for retained logic)
+      const effectiveDuration = useRetainedLogic ? node.remainingDuration : node.duration;
+      node.earlyFinish = node.earlyStart + effectiveDuration;
     }
 
     // Find project duration (max EF)
@@ -343,8 +394,9 @@ export class ActivityService {
         );
       }
       
-      // LS = LF - Duration
-      node.lateStart = node.lateFinish - node.duration;
+      // LS = LF - Duration (or remainingDuration for retained logic)
+      const effectiveDuration = useRetainedLogic ? node.remainingDuration : node.duration;
+      node.lateStart = node.lateFinish - effectiveDuration;
     }
 
     // Calculate Float and identify critical path
@@ -367,7 +419,9 @@ export class ActivityService {
       }
       
       // Activity is critical if total float is 0
-      node.isCritical = node.totalFloat === 0;
+      // Note: Completed activities (remainingDuration = 0) are not on the critical path
+      // unless they have successors that depend on them
+      node.isCritical = node.totalFloat === 0 && (useRetainedLogic ? node.remainingDuration > 0 : true);
       
       if (node.isCritical) {
         criticalPath.push(node.id);
@@ -385,13 +439,14 @@ export class ActivityService {
     await this.updateActivitiesWithCriticalPath(nodes);
 
     logger.info(
-      `Critical path calculated for schedule ${scheduleId}: ${criticalPath.length} critical activities, ${projectDuration} days duration`
+      `Critical path calculated for schedule ${scheduleId}: ${criticalPath.length} critical activities, ${projectDuration} days duration (retained logic: ${useRetainedLogic})`
     );
 
     return {
       criticalPath,
       projectDuration,
       activities: Array.from(nodes.values()),
+      useRetainedLogic,
     };
   }
 

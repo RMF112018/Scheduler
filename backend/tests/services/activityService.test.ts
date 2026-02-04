@@ -39,6 +39,14 @@ describe('ActivityService', () => {
       },
     });
 
+    // Create project settings with retained logic enabled by default
+    await prisma.projectSettings.create({
+      data: {
+        projectId: testProject.id,
+        useRetainedLogic: true,
+      },
+    });
+
     // Create test schedule
     testSchedule = await prisma.schedule.create({
       data: {
@@ -397,6 +405,193 @@ describe('ActivityService', () => {
 
       expect(criticalActivities.length).toBe(2);
       expect(criticalActivities.every((a) => a.isCritical)).toBe(true);
+    });
+  });
+
+  describe('calculateCriticalPath with Retained Logic', () => {
+    it('should use remaining duration for in-progress activities', async () => {
+      // Create a linear sequence: A (10 days, 50% complete) -> B (5 days)
+      const actA = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity A',
+        startDate: new Date('2024-01-01'),
+        finishDate: new Date('2024-01-10'),
+        duration: 10,
+        percentComplete: 50, // 50% complete = 5 days remaining
+      });
+
+      const actB = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity B',
+        startDate: new Date('2024-01-11'),
+        finishDate: new Date('2024-01-15'),
+        duration: 5,
+        predecessorIds: [actA.id],
+      });
+
+      // With retained logic: A has 5 days remaining + B has 5 days = 10 days total
+      const result = await activityService.calculateCriticalPath(testSchedule.id);
+
+      expect(result.useRetainedLogic).toBe(true);
+      expect(result.projectDuration).toBe(10); // 5 remaining + 5 = 10
+
+      const nodeA = result.activities.find((n) => n.id === actA.id);
+      expect(nodeA?.remainingDuration).toBe(5);
+      expect(nodeA?.duration).toBe(10);
+    });
+
+    it('should treat completed activities as having zero remaining duration', async () => {
+      // Create: A (10 days, 100% complete) -> B (5 days)
+      const actA = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity A',
+        startDate: new Date('2024-01-01'),
+        finishDate: new Date('2024-01-10'),
+        duration: 10,
+        percentComplete: 100, // Completed
+      });
+
+      const actB = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity B',
+        startDate: new Date('2024-01-11'),
+        finishDate: new Date('2024-01-15'),
+        duration: 5,
+        predecessorIds: [actA.id],
+      });
+
+      const result = await activityService.calculateCriticalPath(testSchedule.id);
+
+      expect(result.projectDuration).toBe(5); // A is done, only B's 5 days remain
+
+      const nodeA = result.activities.find((n) => n.id === actA.id);
+      expect(nodeA?.remainingDuration).toBe(0);
+      expect(nodeA?.isCritical).toBe(false); // Completed activities are not critical
+    });
+
+    it('should use full duration when retained logic is disabled', async () => {
+      // Disable retained logic for the project
+      await prisma.projectSettings.update({
+        where: { projectId: testProject.id },
+        data: { useRetainedLogic: false },
+      });
+
+      const actA = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity A',
+        startDate: new Date('2024-01-01'),
+        finishDate: new Date('2024-01-10'),
+        duration: 10,
+        percentComplete: 50,
+      });
+
+      const actB = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity B',
+        startDate: new Date('2024-01-11'),
+        finishDate: new Date('2024-01-15'),
+        duration: 5,
+        predecessorIds: [actA.id],
+      });
+
+      const result = await activityService.calculateCriticalPath(testSchedule.id);
+
+      expect(result.useRetainedLogic).toBe(false);
+      expect(result.projectDuration).toBe(15); // Full 10 + 5 = 15
+    });
+
+    it('should allow explicit override of retained logic setting', async () => {
+      const actA = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity A',
+        startDate: new Date('2024-01-01'),
+        finishDate: new Date('2024-01-10'),
+        duration: 10,
+        percentComplete: 50,
+      });
+
+      // Explicitly disable retained logic even though project setting is enabled
+      const result = await activityService.calculateCriticalPath(testSchedule.id, {
+        useRetainedLogic: false,
+      });
+
+      expect(result.useRetainedLogic).toBe(false);
+      expect(result.projectDuration).toBe(10); // Full duration
+    });
+
+    it('should calculate correct float with retained logic', async () => {
+      // Create a network:
+      //     A (10 days, 50% = 5 remaining) -> C (5 days)
+      //     B (2 days) ---------------------->
+      // Critical path should be A -> C (5 + 5 = 10 days)
+      // B should have float (10 - 2 = 8 days)
+
+      const actA = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity A',
+        startDate: new Date('2024-01-01'),
+        finishDate: new Date('2024-01-10'),
+        duration: 10,
+        percentComplete: 50,
+      });
+
+      const actB = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity B',
+        startDate: new Date('2024-01-01'),
+        finishDate: new Date('2024-01-02'),
+        duration: 2,
+        percentComplete: 0,
+      });
+
+      const actC = await activityService.create({
+        scheduleId: testSchedule.id,
+        name: 'Activity C',
+        startDate: new Date('2024-01-11'),
+        finishDate: new Date('2024-01-15'),
+        duration: 5,
+        predecessorIds: [actA.id, actB.id],
+      });
+
+      const result = await activityService.calculateCriticalPath(testSchedule.id);
+
+      expect(result.projectDuration).toBe(10); // 5 (A remaining) + 5 (C) = 10
+
+      const nodeB = result.activities.find((n) => n.id === actB.id);
+      expect(nodeB?.isCritical).toBe(false);
+      expect(nodeB?.totalFloat).toBe(3); // B can be delayed 3 days (5 - 2 = 3)
+
+      const nodeA = result.activities.find((n) => n.id === actA.id);
+      expect(nodeA?.isCritical).toBe(true);
+    });
+
+    it('should handle various progress levels correctly', async () => {
+      // Test different progress levels
+      const activities = [
+        { name: 'A', duration: 10, percentComplete: 0, expectedRemaining: 10 },
+        { name: 'B', duration: 10, percentComplete: 25, expectedRemaining: 8 }, // ceil(10 * 0.75) = 8
+        { name: 'C', duration: 10, percentComplete: 50, expectedRemaining: 5 },
+        { name: 'D', duration: 10, percentComplete: 75, expectedRemaining: 3 }, // ceil(10 * 0.25) = 3
+        { name: 'E', duration: 10, percentComplete: 100, expectedRemaining: 0 },
+      ];
+
+      for (const act of activities) {
+        await activityService.create({
+          scheduleId: testSchedule.id,
+          name: act.name,
+          startDate: new Date('2024-01-01'),
+          finishDate: new Date('2024-01-10'),
+          duration: act.duration,
+          percentComplete: act.percentComplete,
+        });
+      }
+
+      const result = await activityService.calculateCriticalPath(testSchedule.id);
+
+      for (const act of activities) {
+        const node = result.activities.find((n) => n.name === act.name);
+        expect(node?.remainingDuration).toBe(act.expectedRemaining);
+      }
     });
   });
 });

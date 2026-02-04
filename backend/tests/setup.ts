@@ -45,6 +45,7 @@ beforeEach(async () => {
   await prisma.scheduleActivity.deleteMany();
   await prisma.schedule.deleteMany();
   await prisma.projectMember.deleteMany();
+  await prisma.projectSettings.deleteMany();
   await prisma.project.deleteMany();
   await prisma.staffMember.deleteMany();
   await prisma.userPermission.deleteMany();
