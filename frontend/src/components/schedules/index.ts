@@ -7,3 +7,4 @@ export type { ActivityFormData } from './ActivityForm';
 export { default as ActivityList } from './ActivityList';
 export { default as BaselineSelector } from './BaselineSelector';
 export { default as BaselineComparison } from './BaselineComparison';
+export { default as ScheduleIssuesPanel } from './ScheduleIssuesPanel';

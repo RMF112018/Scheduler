@@ -17,6 +17,20 @@ const approveSchema = z.object({
   notes: z.string().optional(),
 });
 
+const attachmentApproveSchema = z.object({
+  notes: z.string().optional(),
+});
+
+const attachmentRejectSchema = z.object({
+  reason: z.string().min(1, 'Rejection reason is required'),
+});
+
+const bulkAttachmentSchema = z.object({
+  action: z.enum(['approve', 'reject']),
+  attachmentIds: z.array(z.string()).min(1, 'At least one attachment ID is required'),
+  reason: z.string().optional(),
+});
+
 // Routes - all require authentication
 router.use(authenticate);
 
@@ -27,6 +41,13 @@ router.get('/to-review', workflowController.getApprovalsToReview);
 router.get('/statistics/:projectId', workflowController.getStatistics);
 router.get('/:approvalId', workflowController.getApproval);
 router.get('/:approvalId/history', workflowController.getHistory);
+
+// Review data endpoint - combined schedule changes + attachments
+router.get(
+  '/:approvalId/review',
+  requireRole('pm', 'superintendent', 'admin'),
+  workflowController.getReviewData
+);
 
 // Approval actions - require PM, Superintendent, or Admin role
 router.post(
@@ -40,6 +61,47 @@ router.post(
   requireRole('pm', 'superintendent', 'admin'),
   validate(rejectSchema),
   workflowController.reject
+);
+
+// ============================================================================
+// Attachment Approval Routes
+// ============================================================================
+
+// Get pending attachments for an approval
+router.get(
+  '/:approvalId/attachments',
+  requireRole('pm', 'superintendent', 'admin'),
+  workflowController.getPendingAttachments
+);
+
+// Approve a single attachment
+router.post(
+  '/attachments/:attachmentId/approve',
+  requireRole('pm', 'superintendent', 'admin'),
+  validate(attachmentApproveSchema),
+  workflowController.approveAttachment
+);
+
+// Reject a single attachment
+router.post(
+  '/attachments/:attachmentId/reject',
+  requireRole('pm', 'superintendent', 'admin'),
+  validate(attachmentRejectSchema),
+  workflowController.rejectAttachment
+);
+
+// Bulk approve/reject attachments
+router.post(
+  '/attachments/bulk',
+  requireRole('pm', 'superintendent', 'admin'),
+  validate(bulkAttachmentSchema),
+  workflowController.bulkAttachmentAction
+);
+
+// Attachment statistics for a project
+router.get(
+  '/attachments/statistics/:projectId',
+  workflowController.getAttachmentStatistics
 );
 
 export default router;

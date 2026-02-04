@@ -28,13 +28,37 @@ export interface UpdateLookaheadActivityDto {
 }
 
 export interface Conflict {
-  type: 'zero_float_violation' | 'resource_conflict' | 'date_conflict' | 'predecessor_conflict';
+  type: 
+    | 'zero_float_violation' 
+    | 'resource_conflict' 
+    | 'resource_over_allocation'
+    | 'date_conflict' 
+    | 'predecessor_conflict'
+    | 'out_of_sequence_risk'
+    | 'near_critical_path';
   activityId: string;
   activityName: string;
   severity: 'high' | 'medium' | 'low';
   message: string;
   details?: Record<string, unknown>;
 }
+
+// Configuration for conflict detection thresholds
+export interface ConflictDetectionConfig {
+  nearCriticalFloatThreshold?: number; // Default: 5 days
+  resourceOverAllocationThreshold?: number; // Default: 100% (1.0)
+  enableResourceConflicts?: boolean;
+  enableOutOfSequenceRisk?: boolean;
+  enableNearCriticalWarnings?: boolean;
+}
+
+const DEFAULT_CONFLICT_CONFIG: Required<ConflictDetectionConfig> = {
+  nearCriticalFloatThreshold: 5,
+  resourceOverAllocationThreshold: 1.0,
+  enableResourceConflicts: true,
+  enableOutOfSequenceRisk: true,
+  enableNearCriticalWarnings: true,
+};
 
 export interface MergeResult {
   added: number;
@@ -484,15 +508,28 @@ export class LookaheadService {
 
   /**
    * Detect conflicts for a lookahead activity
-   * Checks for zero-float violations, resource conflicts, and date conflicts
+   * Checks for zero-float violations, resource conflicts, date conflicts,
+   * out-of-sequence risks, and near-critical path warnings
    */
-  async detectConflicts(lookaheadId: string, activityId?: string): Promise<Conflict[]> {
+  async detectConflicts(
+    lookaheadId: string, 
+    activityId?: string,
+    config: ConflictDetectionConfig = {}
+  ): Promise<Conflict[]> {
+    const mergedConfig = { ...DEFAULT_CONFLICT_CONFIG, ...config };
     const lookahead = await this.findById(lookaheadId, { includeActivities: true });
     const conflicts: Conflict[] = [];
 
     // Get master schedule activities for comparison
     const masterActivities = await prisma.scheduleActivity.findMany({
       where: { scheduleId: lookahead.masterScheduleId },
+      include: {
+        resourceAssignments: {
+          include: {
+            staffMember: true,
+          },
+        },
+      },
     });
 
     const masterActivityMap = new Map(
@@ -525,9 +562,307 @@ export class LookaheadService {
         masterActivityMap
       );
       conflicts.push(...predecessorConflicts);
+
+      // Check for near-critical path warnings
+      if (mergedConfig.enableNearCriticalWarnings) {
+        const nearCriticalConflicts = this.checkNearCriticalPath(
+          lookaheadActivity,
+          masterActivity,
+          mergedConfig.nearCriticalFloatThreshold
+        );
+        conflicts.push(...nearCriticalConflicts);
+      }
+
+      // Check for out-of-sequence risk
+      if (mergedConfig.enableOutOfSequenceRisk) {
+        const oosRiskConflicts = await this.checkOutOfSequenceRisk(
+          lookaheadActivity,
+          masterActivity,
+          lookahead.activities,
+          masterActivityMap
+        );
+        conflicts.push(...oosRiskConflicts);
+      }
+    }
+
+    // Check for resource over-allocation across all activities in the lookahead period
+    if (mergedConfig.enableResourceConflicts) {
+      const resourceConflicts = await this.checkResourceOverAllocation(
+        lookahead,
+        activitiesToCheck,
+        masterActivityMap,
+        mergedConfig.resourceOverAllocationThreshold
+      );
+      conflicts.push(...resourceConflicts);
     }
 
     return conflicts;
+  }
+
+  /**
+   * Check for near-critical path activities (float < threshold)
+   * These activities are at risk of becoming critical if delayed
+   */
+  private checkNearCriticalPath(
+    lookaheadActivity: LookaheadActivity,
+    masterActivity: ScheduleActivity,
+    floatThreshold: number
+  ): Conflict[] {
+    const conflicts: Conflict[] = [];
+
+    // Check if activity has low float (near-critical)
+    if (
+      masterActivity.totalFloat !== null &&
+      masterActivity.totalFloat > 0 &&
+      masterActivity.totalFloat <= floatThreshold &&
+      !masterActivity.isCritical
+    ) {
+      // Calculate if lookahead changes would consume the remaining float
+      const lookaheadFinish = new Date(lookaheadActivity.finishDate);
+      const masterFinish = new Date(masterActivity.finishDate);
+      const delayDays = Math.ceil(
+        (lookaheadFinish.getTime() - masterFinish.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (delayDays > 0) {
+        const remainingFloat = masterActivity.totalFloat - delayDays;
+        
+        conflicts.push({
+          type: 'near_critical_path',
+          activityId: lookaheadActivity.id,
+          activityName: lookaheadActivity.name,
+          severity: remainingFloat <= 0 ? 'high' : 'medium',
+          message: remainingFloat <= 0
+            ? `Activity "${lookaheadActivity.name}" will become critical path (${masterActivity.totalFloat} days float consumed by ${delayDays} day delay)`
+            : `Activity "${lookaheadActivity.name}" has only ${remainingFloat} days float remaining after ${delayDays} day delay`,
+          details: {
+            originalFloat: masterActivity.totalFloat,
+            delayDays,
+            remainingFloat: Math.max(0, remainingFloat),
+            willBecomeCritical: remainingFloat <= 0,
+            masterFinishDate: masterFinish.toISOString(),
+            lookaheadFinishDate: lookaheadFinish.toISOString(),
+          },
+        });
+      } else if (masterActivity.totalFloat <= 2) {
+        // Warn about very low float even without delay
+        conflicts.push({
+          type: 'near_critical_path',
+          activityId: lookaheadActivity.id,
+          activityName: lookaheadActivity.name,
+          severity: 'low',
+          message: `Activity "${lookaheadActivity.name}" has very low float (${masterActivity.totalFloat} days) - monitor closely`,
+          details: {
+            totalFloat: masterActivity.totalFloat,
+            floatThreshold,
+          },
+        });
+      }
+    }
+
+    return conflicts;
+  }
+
+  /**
+   * Check for out-of-sequence risk
+   * Flags when lookahead dates suggest activity might start before predecessors complete
+   */
+  private async checkOutOfSequenceRisk(
+    lookaheadActivity: LookaheadActivity,
+    masterActivity: ScheduleActivity,
+    allLookaheadActivities: LookaheadActivity[],
+    masterActivityMap: Map<string, ScheduleActivity>
+  ): Promise<Conflict[]> {
+    const conflicts: Conflict[] = [];
+
+    // Get predecessor IDs from master activity
+    const predecessorIds = masterActivity.predecessorIds;
+
+    for (const predId of predecessorIds) {
+      // Find the predecessor in master
+      const masterPredecessor = Array.from(masterActivityMap.values()).find(
+        (a) => a.id === predId
+      );
+
+      if (!masterPredecessor) continue;
+
+      // Find corresponding lookahead predecessor (if it exists)
+      const lookaheadPredecessor = allLookaheadActivities.find(
+        (a) => a.persistentInternalGuid === masterPredecessor.persistentInternalGuid
+      );
+
+      // Determine predecessor finish date (use lookahead if available, else master)
+      const predFinishDate = lookaheadPredecessor
+        ? new Date(lookaheadPredecessor.finishDate)
+        : new Date(masterPredecessor.finishDate);
+
+      const actStartDate = new Date(lookaheadActivity.startDate);
+
+      // Check if lookahead start is before predecessor finish
+      if (actStartDate < predFinishDate) {
+        const overlapDays = Math.ceil(
+          (predFinishDate.getTime() - actStartDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        conflicts.push({
+          type: 'out_of_sequence_risk',
+          activityId: lookaheadActivity.id,
+          activityName: lookaheadActivity.name,
+          severity: overlapDays > 5 ? 'high' : overlapDays > 2 ? 'medium' : 'low',
+          message: `Risk: "${lookaheadActivity.name}" is scheduled to start ${overlapDays} day(s) before predecessor "${masterPredecessor.name}" finishes`,
+          details: {
+            predecessorId: masterPredecessor.id,
+            predecessorName: masterPredecessor.name,
+            predecessorGuid: masterPredecessor.persistentInternalGuid,
+            activityStartDate: actStartDate.toISOString(),
+            predecessorFinishDate: predFinishDate.toISOString(),
+            overlapDays,
+            usingLookaheadPredecessorDates: !!lookaheadPredecessor,
+          },
+        });
+      }
+    }
+
+    return conflicts;
+  }
+
+  /**
+   * Check for resource over-allocation across activities in the lookahead period
+   * Detects when resources are assigned to multiple activities on the same days
+   */
+  private async checkResourceOverAllocation(
+    lookahead: LookaheadWithActivities,
+    activitiesToCheck: LookaheadActivity[],
+    masterActivityMap: Map<string, ScheduleActivity>,
+    threshold: number
+  ): Promise<Conflict[]> {
+    const conflicts: Conflict[] = [];
+
+    // Build a map of resource allocations by day
+    type DayAllocation = {
+      date: string;
+      activities: Array<{
+        activityId: string;
+        activityName: string;
+        hoursAllocated: number;
+      }>;
+      totalHours: number;
+    };
+
+    const resourceDayMap = new Map<string, Map<string, DayAllocation>>();
+
+    // Get all resource assignments for activities in the lookahead
+    for (const lookaheadActivity of activitiesToCheck) {
+      const masterActivity = masterActivityMap.get(lookaheadActivity.persistentInternalGuid);
+      if (!masterActivity) continue;
+
+      // Get resource assignments from master activity
+      const assignments = await prisma.resourceAssignment.findMany({
+        where: {
+          scheduleActivityId: masterActivity.id,
+        },
+        include: {
+          staffMember: true,
+        },
+      });
+
+      // Calculate daily allocation for each resource
+      const startDate = new Date(lookaheadActivity.startDate);
+      const finishDate = new Date(lookaheadActivity.finishDate);
+      const durationDays = Math.max(1, lookaheadActivity.duration);
+
+      for (const assignment of assignments) {
+        const resourceId = assignment.staffMemberId;
+        const resourceName = `${assignment.staffMember.firstName} ${assignment.staffMember.lastName}`;
+        const totalHours = assignment.hoursAllocated ? Number(assignment.hoursAllocated) : 8 * durationDays;
+        const dailyHours = totalHours / durationDays;
+
+        if (!resourceDayMap.has(resourceId)) {
+          resourceDayMap.set(resourceId, new Map());
+        }
+
+        const resourceDays = resourceDayMap.get(resourceId)!;
+
+        // Add allocation for each day of the activity
+        const currentDate = new Date(startDate);
+        while (currentDate <= finishDate) {
+          const dateKey = currentDate.toISOString().split('T')[0];
+
+          if (!resourceDays.has(dateKey)) {
+            resourceDays.set(dateKey, {
+              date: dateKey,
+              activities: [],
+              totalHours: 0,
+            });
+          }
+
+          const dayAllocation = resourceDays.get(dateKey)!;
+          dayAllocation.activities.push({
+            activityId: lookaheadActivity.id,
+            activityName: lookaheadActivity.name,
+            hoursAllocated: dailyHours,
+          });
+          dayAllocation.totalHours += dailyHours;
+
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+    }
+
+    // Check for over-allocations (more than 8 hours per day per resource)
+    const standardDailyHours = 8;
+
+    for (const [resourceId, resourceDays] of resourceDayMap) {
+      for (const [dateKey, dayAllocation] of resourceDays) {
+        const allocationRatio = dayAllocation.totalHours / standardDailyHours;
+
+        if (allocationRatio > threshold && dayAllocation.activities.length > 1) {
+          // Get resource name from first activity's assignment
+          const staffMember = await prisma.staffMember.findUnique({
+            where: { id: resourceId },
+          });
+
+          const resourceName = staffMember
+            ? `${staffMember.firstName} ${staffMember.lastName}`
+            : 'Unknown Resource';
+
+          // Create conflict for each activity involved
+          for (const activity of dayAllocation.activities) {
+            conflicts.push({
+              type: 'resource_over_allocation',
+              activityId: activity.activityId,
+              activityName: activity.activityName,
+              severity: allocationRatio > 1.5 ? 'high' : 'medium',
+              message: `Resource "${resourceName}" is over-allocated on ${dateKey} (${dayAllocation.totalHours.toFixed(1)}h / ${standardDailyHours}h = ${(allocationRatio * 100).toFixed(0)}%)`,
+              details: {
+                resourceId,
+                resourceName,
+                date: dateKey,
+                totalHoursAllocated: dayAllocation.totalHours,
+                standardDailyHours,
+                allocationRatio,
+                conflictingActivities: dayAllocation.activities.map((a) => ({
+                  id: a.activityId,
+                  name: a.activityName,
+                  hours: a.hoursAllocated,
+                })),
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // Deduplicate conflicts (same activity might appear multiple times for different days)
+    const uniqueConflicts = conflicts.filter((conflict, index, self) => {
+      const key = `${conflict.activityId}-${conflict.type}-${(conflict.details as Record<string, unknown>)?.date}`;
+      return index === self.findIndex((c) => {
+        const cKey = `${c.activityId}-${c.type}-${(c.details as Record<string, unknown>)?.date}`;
+        return cKey === key;
+      });
+    });
+
+    return uniqueConflicts;
   }
 
   /**
