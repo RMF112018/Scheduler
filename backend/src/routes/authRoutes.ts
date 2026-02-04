@@ -19,7 +19,11 @@ const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   companyId: z.string().uuid().optional(),
-});
+  companyName: z.string().min(1).optional(),
+}).refine(
+  (data) => data.companyId || data.companyName,
+  { message: 'Either companyId or companyName is required' }
+);
 
 const refreshSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
@@ -32,4 +36,5 @@ router.post('/refresh', validate(refreshSchema), authController.refresh);
 router.post('/logout', authenticate, authController.logout);
 router.get('/me', authenticate, authController.getCurrentUser);
 
+export { router as authRoutes };
 export default router;

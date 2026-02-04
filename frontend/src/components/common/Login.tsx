@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -9,6 +9,8 @@ import {
   Typography,
   Alert,
   CircularProgress,
+  Link,
+  Divider,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '@store/index';
 import { login, clearError } from '@store/slices/authSlice';
@@ -100,6 +102,19 @@ const Login: React.FC = () => {
               {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
           </form>
+
+          <Divider sx={{ my: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              or
+            </Typography>
+          </Divider>
+
+          <Typography variant="body2" align="center" color="text.secondary">
+            Don't have an account?{' '}
+            <Link component={RouterLink} to="/register" underline="hover" fontWeight="medium">
+              Create one
+            </Link>
+          </Typography>
         </CardContent>
       </Card>
     </Box>

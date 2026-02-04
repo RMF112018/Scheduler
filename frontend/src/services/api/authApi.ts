@@ -33,6 +33,7 @@ export const authApi = {
     firstName: string;
     lastName: string;
     companyId?: string;
+    companyName?: string;
   }): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/register', data);
     return response.data;

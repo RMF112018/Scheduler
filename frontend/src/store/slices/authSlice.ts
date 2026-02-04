@@ -26,6 +26,14 @@ interface LoginCredentials {
   password: string;
 }
 
+interface RegisterCredentials {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+}
+
 interface AuthResponse {
   user: User;
   token: string;
@@ -53,6 +61,21 @@ export const login = createAsyncThunk<AuthResponse, LoginCredentials>(
       return response;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const register = createAsyncThunk<AuthResponse, RegisterCredentials>(
+  'auth/register',
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await authApi.register(credentials);
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('refreshToken', response.refreshToken);
+      return response;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       return rejectWithValue(errorMessage);
     }
   }
@@ -104,6 +127,22 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
       })
       .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Register
+      .addCase(register.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.refreshToken = action.payload.refreshToken;
+      })
+      .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

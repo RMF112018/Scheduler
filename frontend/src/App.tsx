@@ -10,6 +10,7 @@ import ScheduleList from '@components/schedules/ScheduleList';
 import ScheduleDetail from '@components/schedules/ScheduleDetail';
 import LookaheadView from '@components/lookahead/LookaheadView';
 import Login from '@components/common/Login';
+import Register from '@components/common/Register';
 import NotFound from '@components/common/NotFound';
 
 // Auth wrapper
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>

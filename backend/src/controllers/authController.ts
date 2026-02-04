@@ -52,7 +52,7 @@ export class AuthController {
 
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { email, password, firstName, lastName, companyId } = req.body;
+      const { email, password, firstName, lastName, companyId, companyName } = req.body;
 
       // Check if user exists
       const existingUser = await prisma.user.findUnique({
@@ -66,6 +66,20 @@ export class AuthController {
       // Hash password
       const passwordHash = await bcrypt.hash(password, 12);
 
+      // Create or use existing company
+      let finalCompanyId = companyId;
+      if (!finalCompanyId && companyName) {
+        // Create a new company for this user
+        const company = await prisma.company.create({
+          data: { name: companyName },
+        });
+        finalCompanyId = company.id;
+      }
+
+      if (!finalCompanyId) {
+        throw new BadRequestError('Company ID or Company Name is required');
+      }
+
       // Create user
       const user = await prisma.user.create({
         data: {
@@ -73,8 +87,8 @@ export class AuthController {
           passwordHash,
           firstName,
           lastName,
-          role: 'user',
-          companyId,
+          role: 'admin', // First user in a company is admin
+          companyId: finalCompanyId,
         },
       });
 
