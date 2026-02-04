@@ -25,15 +25,31 @@ const updateActivitySchema = z.object({
   finishDate: z.string().datetime().optional(),
   duration: z.number().int().positive().optional(),
   percentComplete: z.number().int().min(0).max(100).optional(),
+  plannerStatus: z.enum(['should_do', 'will_do']).optional(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 // Routes - all require authentication
 router.use(authenticate);
 
+// Lookahead CRUD
+router.get('/project/:projectId', lookaheadController.getLookaheadsByProject);
+router.get('/schedule/:scheduleId', lookaheadController.getLookaheadsBySchedule);
 router.get('/:lookaheadId', lookaheadController.getLookahead);
 router.post('/', validate(createLookaheadSchema), lookaheadController.createLookahead);
+router.delete('/:lookaheadId', lookaheadController.deleteLookahead);
+
+// Pull from master
 router.post('/:lookaheadId/pull', lookaheadController.pullFromMaster);
+
+// Commit changes for approval
 router.post('/:lookaheadId/commit', lookaheadController.commitChanges);
+
+// Get uncommitted changes
+router.get('/:lookaheadId/uncommitted', lookaheadController.getUncommittedChanges);
+
+// Get pending approval
+router.get('/:lookaheadId/pending-approval', lookaheadController.getPendingApproval);
 
 // Activity management
 router.put(
