@@ -4,6 +4,8 @@ export { activityService, ActivityService } from './activityService.js';
 export { lookaheadService, LookaheadService } from './lookaheadService.js';
 export { importMappingService, ImportMappingService } from './importMappingService.js';
 export { scheduleValidationService, ScheduleValidationService } from './scheduleValidationService.js';
+export { staffService, StaffService } from './staffService.js';
+export { forecastingService, ForecastingService } from './forecastingService.js';
 export {
   initializeSocketIO,
   notifyProjectUpdate,
@@ -61,3 +63,17 @@ export type {
   ResolveOutOfSequenceDto,
   DCMA14Config,
 } from './scheduleValidationService.js';
+
+export type {
+  StaffRoleInput,
+  StaffMemberInput,
+  StaffAssignmentInput,
+  AllocationInfo,
+  StaffAvailabilityResult,
+} from './staffService.js';
+
+export type {
+  ProjectForecast,
+  StaffSuggestion,
+  NewHireNeedsResult,
+} from './forecastingService.js';

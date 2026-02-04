@@ -21,6 +21,8 @@ import importRoutes from './routes/importRoutes.js';
 import exportRoutes from './routes/exportRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import staffRoutes from './routes/staffRoutes.js';
+import forecastingRoutes from './routes/forecastingRoutes.js';
 
 const app: Application = express();
 
@@ -71,6 +73,8 @@ app.use('/api/v1/import', importRoutes);
 app.use('/api/v1/export', exportRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/staff', staffRoutes);
+app.use('/api/v1/forecasts', forecastingRoutes);
 
 // Error handling
 app.use(notFoundHandler);

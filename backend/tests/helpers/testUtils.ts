@@ -115,12 +115,16 @@ export async function createTestProject(
     name?: string;
     description?: string;
     status?: string;
+    startDate?: Date;
+    endDate?: Date;
   } = {}
 ): Promise<TestProject> {
   const {
     name = 'Test Project',
     description = 'A test project for testing',
     status = 'active',
+    startDate,
+    endDate,
   } = options;
 
   const project = await prisma.project.create({
@@ -129,6 +133,8 @@ export async function createTestProject(
       name,
       description,
       status,
+      startDate,
+      endDate,
       createdBy,
     },
   });
@@ -220,6 +226,40 @@ export async function createTestActivities(
  */
 export function authHeader(token: string): { Authorization: string } {
   return { Authorization: `Bearer ${token}` };
+}
+
+/**
+ * Clean up all test data from the database
+ * This should be called in afterEach to ensure a clean state
+ */
+export async function cleanupTestData(): Promise<void> {
+  // Delete in order to respect foreign key constraints
+  await prisma.staffAssignmentMonthlyAllocation.deleteMany({});
+  await prisma.staffAssignment.deleteMany({});
+  await prisma.projectRoleRate.deleteMany({});
+  await prisma.resourceAssignment.deleteMany({});
+  await prisma.staffMember.deleteMany({});
+  await prisma.staffRole.deleteMany({});
+  await prisma.activityAttachment.deleteMany({});
+  await prisma.workflowHistory.deleteMany({});
+  await prisma.workflowApproval.deleteMany({});
+  await prisma.lookaheadActivity.deleteMany({});
+  await prisma.lookaheadVersion.deleteMany({});
+  await prisma.lookaheadSchedule.deleteMany({});
+  await prisma.scheduleBaseline.deleteMany({});
+  await prisma.scheduleActivity.deleteMany({});
+  await prisma.schedule.deleteMany({});
+  await prisma.importMapping.deleteMany({});
+  await prisma.projectSettings.deleteMany({});
+  await prisma.projectMember.deleteMany({});
+  await prisma.project.deleteMany({});
+  await prisma.notification.deleteMany({});
+  await prisma.userPermission.deleteMany({});
+  await prisma.rolePermission.deleteMany({});
+  await prisma.role.deleteMany({});
+  await prisma.permission.deleteMany({});
+  await prisma.user.deleteMany({});
+  await prisma.company.deleteMany({});
 }
 
 export { prisma };
