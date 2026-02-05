@@ -79,7 +79,7 @@ class SocketService {
       return;
     }
     // @ts-expect-error - Vite env types
-    const apiUrl = (import.meta.env?.VITE_API_URL as string) || 'http://localhost:3001';
+    const apiUrl = (import.meta.env?.VITE_API_URL as string) || 'http://localhost:4000';
     const baseUrl = apiUrl.replace('/api/v1', '');
 
     this.socket = io(baseUrl, {
