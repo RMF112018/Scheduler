@@ -4,9 +4,9 @@
  * Phase 9: OpenAPI 3.0 specification generation for public API documentation.
  */
 
-import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerJsdoc, { Options } from 'swagger-jsdoc';
 
-const options: swaggerJsdoc.Options = {
+const options: Options = {
   definition: {
     openapi: '3.0.0',
     info: {
