@@ -26,18 +26,20 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  company              Company              @relation(fields: [companyId], references: [id])
-  projects             Project[]            @relation("ProjectCreator")
-  schedules            Schedule[]           @relation("ScheduleCreator")
-  staffMember          StaffMember?
-  notifications        Notification[]
-  submittedApprovals   WorkflowApproval[]   @relation("ApprovalSubmitter")
-  approvedApprovals    WorkflowApproval[]   @relation("ApprovalApprover")
-  projectMemberships   ProjectMember[]
-  userPermissions      UserPermission[]
-  resourceAssignments  ResourceAssignment[] @relation("AssignmentAssigner")
-  activityAttachments  ActivityAttachment[]
-  lookaheadVersions    LookaheadVersion[]   @relation("VersionApprover")
+  company             Company                    @relation(fields: [companyId], references: [id])
+  projects            Project[]                  @relation("ProjectCreator")
+  schedules           Schedule[]                 @relation("ScheduleCreator")
+  staffMember         StaffMember?
+  notifications       Notification[]
+  submittedApprovals  WorkflowApproval[]         @relation("ApprovalSubmitter")
+  approvedApprovals   WorkflowApproval[]         @relation("ApprovalApprover")
+  projectMemberships  ProjectMember[]
+  userPermissions     UserPermission[]
+  resourceAssignments ResourceAssignment[]       @relation("AssignmentAssigner")
+  activityAttachments ActivityAttachment[]
+  lookaheadVersions   LookaheadVersion[]         @relation("VersionApprover")
+  activityComments    LookaheadActivityComment[] @relation("CommentAuthor")
+  commentReactions    LookaheadCommentReaction[] @relation("ReactionUser")
 
   @@map("users")
 }
@@ -131,8 +133,8 @@ model Project {
   createdBy   String    @map("created_by")
 
   // Relations
-  company            Company            @relation(fields: [companyId], references: [id])
-  creator            User               @relation("ProjectCreator", fields: [createdBy], references: [id])
+  company            Company             @relation(fields: [companyId], references: [id])
+  creator            User                @relation("ProjectCreator", fields: [createdBy], references: [id])
   schedules          Schedule[]
   lookaheadSchedules LookaheadSchedule[]
   members            ProjectMember[]
@@ -272,11 +274,11 @@ model LookaheadSchedule {
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  masterSchedule     Schedule           @relation(fields: [masterScheduleId], references: [id])
-  project            Project            @relation(fields: [projectId], references: [id])
-  activities         LookaheadActivity[]
-  versions           LookaheadVersion[]
-  workflowApprovals  WorkflowApproval[]
+  masterSchedule    Schedule            @relation(fields: [masterScheduleId], references: [id])
+  project           Project             @relation(fields: [projectId], references: [id])
+  activities        LookaheadActivity[]
+  versions          LookaheadVersion[]
+  workflowApprovals WorkflowApproval[]
 
   @@index([projectId])
   @@index([masterScheduleId])
@@ -303,7 +305,8 @@ model LookaheadActivity {
   updatedAt              DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  lookaheadSchedule LookaheadSchedule @relation(fields: [lookaheadScheduleId], references: [id], onDelete: Cascade)
+  lookaheadSchedule LookaheadSchedule          @relation(fields: [lookaheadScheduleId], references: [id], onDelete: Cascade)
+  comments          LookaheadActivityComment[]
 
   @@index([lookaheadScheduleId])
   @@index([persistentInternalGuid])
@@ -356,12 +359,12 @@ model WorkflowApproval {
 }
 
 model WorkflowHistory {
-  id         String   @id @default(uuid())
-  approvalId String   @map("approval_id")
-  action     String
-  performedBy String  @map("performed_by")
-  details    Json?
-  createdAt  DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid())
+  approvalId  String   @map("approval_id")
+  action      String
+  performedBy String   @map("performed_by")
+  details     Json?
+  createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
   approval WorkflowApproval @relation(fields: [approvalId], references: [id], onDelete: Cascade)
@@ -408,7 +411,7 @@ model StaffRole {
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   // Relations
-  company      Company       @relation(fields: [companyId], references: [id])
+  company      Company           @relation(fields: [companyId], references: [id])
   staffMembers StaffMember[]
   projectRates ProjectRoleRate[]
 
@@ -429,7 +432,7 @@ model StaffMember {
   firstName          String    @map("first_name")
   lastName           String    @map("last_name")
   email              String?
-  role               String    // Legacy field for backward compatibility
+  role               String // Legacy field for backward compatibility
   certifications     String[]
   skills             String[]  @default([])
   internalHourlyCost Decimal?  @map("internal_hourly_cost") @db.Decimal(10, 2)
@@ -492,9 +495,9 @@ model StaffAssignment {
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   // Relations
-  staffMember         StaffMember                      @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
-  project             Project                          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  monthlyAllocations  StaffAssignmentMonthlyAllocation[]
+  staffMember        StaffMember                        @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+  project            Project                            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  monthlyAllocations StaffAssignmentMonthlyAllocation[]
 
   @@index([staffMemberId])
   @@index([projectId])
@@ -590,6 +593,50 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@map("notifications")
+}
+
+// ============================================================================
+// Lookahead Activity Comments (Phase 8)
+// Comments are scoped to lookahead activities only (not master schedule)
+// ============================================================================
+
+model LookaheadActivityComment {
+  id                  String   @id @default(uuid())
+  lookaheadActivityId String   @map("lookahead_activity_id")
+  userId              String   @map("user_id")
+  parentId            String?  @map("parent_id")
+  content             String
+  mentions            String[] // Array of user IDs mentioned with @
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  lookaheadActivity LookaheadActivity          @relation(fields: [lookaheadActivityId], references: [id], onDelete: Cascade)
+  user              User                       @relation("CommentAuthor", fields: [userId], references: [id])
+  parent            LookaheadActivityComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies           LookaheadActivityComment[] @relation("CommentReplies")
+  reactions         LookaheadCommentReaction[]
+
+  @@index([lookaheadActivityId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("lookahead_activity_comments")
+}
+
+model LookaheadCommentReaction {
+  id        String   @id @default(uuid())
+  commentId String   @map("comment_id")
+  userId    String   @map("user_id")
+  emoji     String // Limited set: "👍", "✅", "⚠️", "❓", "🔧"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  comment LookaheadActivityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User                     @relation("ReactionUser", fields: [userId], references: [id])
+
+  @@unique([commentId, userId, emoji])
+  @@index([commentId])
+  @@map("lookahead_comment_reactions")
 }
 
 // ============================================================================

@@ -27,6 +27,7 @@ export {
 } from './socketService.js';
 
 export { notificationService, NotificationService } from './notificationService.js';
+export { commentService } from './commentService.js';
 
 // Types
 export type {
@@ -120,3 +121,10 @@ export type {
   NotificationRecipient,
   UserNotificationPreferences,
 } from './notificationService.js';
+
+export type {
+  Comment,
+  CommentReaction,
+  CreateCommentInput,
+  UpdateCommentInput,
+} from './commentService.js';

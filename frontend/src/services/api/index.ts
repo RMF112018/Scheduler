@@ -12,3 +12,10 @@ export type {
   PaginatedNotifications,
   GetNotificationsParams,
 } from './notificationApi';
+export { commentApi } from './commentApi';
+export type {
+  Comment,
+  CommentReaction,
+  CommentUser,
+  MentionableUser,
+} from './commentApi';
