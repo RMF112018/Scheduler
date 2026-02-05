@@ -13,11 +13,20 @@ export {
   initializeSocketIO,
   notifyProjectUpdate,
   notifyScheduleUpdate,
+  notifyActivityUpdate,
   notifyLookaheadUpdate,
   notifyApprovalStatus,
   notifyCompany,
+  notifyUser,
+  sendNotificationAlert,
+  updateUnreadCount,
+  isUserOnline,
+  getOnlineUsers,
   getIO,
+  isSocketInitialized,
 } from './socketService.js';
+
+export { notificationService, NotificationService } from './notificationService.js';
 
 // Types
 export type {
@@ -104,3 +113,10 @@ export type {
   ExecutiveDashboard,
   ProjectDrillDown,
 } from './dashboardService.js';
+
+export type {
+  NotificationType,
+  NotificationPayload,
+  NotificationRecipient,
+  UserNotificationPreferences,
+} from './notificationService.js';

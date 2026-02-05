@@ -8,6 +8,7 @@ import activityReducer from './slices/activitySlice';
 import lookaheadReducer from './slices/lookaheadSlice';
 import dashboardReducer from './slices/dashboardSlice';
 import uiReducer from './slices/uiSlice';
+import notificationReducer from './slices/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     lookahead: lookaheadReducer,
     dashboard: dashboardReducer,
     ui: uiReducer,
+    notifications: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

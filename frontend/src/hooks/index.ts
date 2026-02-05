@@ -6,3 +6,4 @@
 
 export { useOfflineSync, type UseOfflineSyncReturn } from './useOfflineSync';
 export { useOfflineLookahead, type UseOfflineLookaheadReturn } from './useOfflineLookahead';
+export { useSocket, default as useSocketDefault } from './useSocket';
