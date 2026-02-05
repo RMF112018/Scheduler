@@ -48,6 +48,12 @@ A modern, web-based construction scheduling application designed to be more intu
    cd Scheduler
    ```
 
+2. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
 2. **Install dependencies**
    ```bash
    pnpm install
@@ -187,6 +193,8 @@ Scheduler/
 
 ## Environment Variables
 
+### Core Configuration
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `NODE_ENV` | Environment mode | `development` |
@@ -196,6 +204,49 @@ Scheduler/
 | `JWT_SECRET` | JWT signing secret | - |
 | `JWT_EXPIRES_IN` | Access token expiry | `1d` |
 | `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:3000` |
+| `API_URL` | API base URL | `http://localhost:4000/api/v1` |
+
+### Module Flags (Phase 9)
+
+Control which modules are enabled. In development, modules default to enabled unless explicitly disabled. In production, modules default to disabled unless explicitly enabled.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ENABLE_COST_MODULE` | Enable cost management module | `false` (prod), `true` (dev) |
+| `ENABLE_DOCS_MODULE` | Enable document management module | `false` (prod), `true` (dev) |
+| `ENABLE_RFI_MODULE` | Enable RFI management module | `false` (prod), `true` (dev) |
+| `ENABLE_DAILY_LOGS_MODULE` | Enable daily logs module | `false` (prod), `true` (dev) |
+| `ENABLE_FIELD_MODULE` | Enable field operations module | `false` (prod), `true` (dev) |
+
+### Partner Integrations
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PARTNER_WEBHOOKS` | Master switch for all partner webhooks | `false` |
+| `ENABLE_PROCORE_WEBHOOKS` | Enable Procore webhook integration | `false` |
+| `ENABLE_AUTODESK_WEBHOOKS` | Enable Autodesk webhook integration | `false` |
+| `ENABLE_QUICKBOOKS_WEBHOOKS` | Enable QuickBooks webhook integration | `false` |
+| `ENABLE_BLUEBEAM_WEBHOOKS` | Enable Bluebeam webhook integration | `false` |
+
+### Webhook Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `WEBHOOK_SECRET` | HMAC secret for webhook signing | - |
+| `WEBHOOK_RETRY_ATTEMPTS` | Number of retry attempts for failed webhooks | `3` |
+| `WEBHOOK_TIMEOUT_MS` | Webhook request timeout in milliseconds | `10000` |
+
+### Email Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SMTP_HOST` | SMTP server hostname | `localhost` |
+| `SMTP_PORT` | SMTP server port | `587` |
+| `SMTP_USER` | SMTP username | - |
+| `SMTP_PASSWORD` | SMTP password | - |
+| `SMTP_FROM` | Default sender email address | `noreply@scheduler.com` |
+
+See `.env.example` for a complete template with all available environment variables.
 
 ## Contributing
 
