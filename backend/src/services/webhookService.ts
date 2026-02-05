@@ -5,10 +5,10 @@
  * Delivers events to subscribed webhook endpoints with retry logic and HMAC signing.
  */
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
-import type { BaseEvent, Event } from '@shared/events';
+import type { BaseEvent, Event } from '../../../shared/src/events.js';
 
 // ============================================================================
 // Types

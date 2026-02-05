@@ -40,8 +40,8 @@ export class AuditService {
           action: params.action,
           userId: params.userId,
           companyId: params.companyId,
-          changes: params.changes,
-          metadata: params.metadata || {},
+          changes: params.changes as unknown,
+          metadata: (params.metadata || {}) as unknown,
         },
       });
     } catch (error) {
@@ -143,13 +143,10 @@ export class AuditService {
       where.action = filters.action;
     }
     if (filters.startDate || filters.endDate) {
-      where.createdAt = {};
-      if (filters.startDate) {
-        where.createdAt.gte = filters.startDate;
-      }
-      if (filters.endDate) {
-        where.createdAt.lte = filters.endDate;
-      }
+      where.createdAt = {
+        ...(filters.startDate && { gte: filters.startDate }),
+        ...(filters.endDate && { lte: filters.endDate }),
+      } as { gte?: Date; lte?: Date };
     }
 
     const [logs, total] = await Promise.all([
