@@ -20,10 +20,97 @@ const updateScheduleSchema = createScheduleSchema.partial().omit({ projectId: tr
 // Routes - all require authentication
 router.use(authenticate);
 
+/**
+ * @swagger
+ * /schedules/{scheduleId}:
+ *   get:
+ *     summary: Get schedule by ID
+ *     tags: [Schedules]
+ *     parameters:
+ *       - in: path
+ *         name: scheduleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Schedule ID
+ *     responses:
+ *       200:
+ *         description: Schedule details
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/:scheduleId', scheduleController.getSchedule);
+
+/**
+ * @swagger
+ * /schedules:
+ *   post:
+ *     summary: Create new schedule
+ *     tags: [Schedules]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - projectId
+ *               - name
+ *             properties:
+ *               projectId:
+ *                 type: string
+ *                 format: uuid
+ *               name:
+ *                 type: string
+ *                 maxLength: 255
+ *               description:
+ *                 type: string
+ *               metadata:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Schedule created successfully
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
 router.post('/', validate(createScheduleSchema), scheduleController.createSchedule);
+
+/**
+ * @swagger
+ * /schedules/{scheduleId}:
+ *   put:
+ *     summary: Update schedule
+ *     tags: [Schedules]
+ *     parameters:
+ *       - in: path
+ *         name: scheduleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *               metadata:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Schedule updated successfully
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.put('/:scheduleId', validate(updateScheduleSchema), scheduleController.updateSchedule);
-router.delete('/:scheduleId', scheduleController.deleteSchedule);
 
 // Activities
 router.get('/:scheduleId/activities', scheduleController.getActivities);

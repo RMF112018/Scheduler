@@ -5,10 +5,12 @@ import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
+import swaggerUi from 'swagger-ui-express';
 
 import { configurePassport } from './config/passport.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { swaggerSpec } from './config/swagger.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -65,6 +67,18 @@ app.use(passport.initialize());
 // Health check
 app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API Documentation (Swagger UI)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Construction Scheduler API Documentation',
+}));
+
+// OpenAPI JSON spec endpoint
+app.get('/api-docs.json', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
 });
 
 // API routes
