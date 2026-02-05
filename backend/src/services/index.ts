@@ -1,9 +1,10 @@
 // Service exports
-export { scheduleService, ScheduleService } from './scheduleService.js';
-export { activityService, ActivityService } from './activityService.js';
-export { lookaheadService, LookaheadService } from './lookaheadService.js';
-export { importMappingService, ImportMappingService } from './importMappingService.js';
-export { scheduleValidationService, ScheduleValidationService } from './scheduleValidationService.js';
+// Phase 9: Core scheduling services moved to modules/core/
+export { scheduleService, ScheduleService } from '../modules/core/services/scheduleService.js';
+export { activityService, ActivityService } from '../modules/core/services/activityService.js';
+export { lookaheadService, LookaheadService } from '../modules/core/services/lookaheadService.js';
+export { importMappingService, ImportMappingService } from '../modules/core/services/importMappingService.js';
+export { scheduleValidationService, ScheduleValidationService } from '../modules/core/services/scheduleValidationService.js';
 export { staffService, StaffService } from './staffService.js';
 export { forecastingService, ForecastingService } from './forecastingService.js';
 export { exportService, ExportService } from './exportService.js';
@@ -36,7 +37,7 @@ export type {
   BaselineVariance,
   BaselineComparison,
   ScheduleWithDetails,
-} from './scheduleService.js';
+} from '../modules/core/services/scheduleService.js';
 
 export type {
   CreateActivityDto,
@@ -44,7 +45,7 @@ export type {
   ActivityNode,
   CriticalPathResult,
   CriticalPathOptions,
-} from './activityService.js';
+} from '../modules/core/services/activityService.js';
 
 export type {
   CreateLookaheadDto,
@@ -53,7 +54,7 @@ export type {
   MergeResult,
   CommitResult,
   LookaheadWithActivities,
-} from './lookaheadService.js';
+} from '../modules/core/services/lookaheadService.js';
 
 export type {
   ExternalActivity,
@@ -64,7 +65,7 @@ export type {
   DiffApproval,
   ImportResult,
   FieldTiesResult,
-} from './importMappingService.js';
+} from '../modules/core/services/importMappingService.js';
 
 export type {
   OutOfSequenceStatus,
@@ -75,7 +76,7 @@ export type {
   ValidationResult,
   ResolveOutOfSequenceDto,
   DCMA14Config,
-} from './scheduleValidationService.js';
+} from '../modules/core/services/scheduleValidationService.js';
 
 export type {
   StaffRoleInput,

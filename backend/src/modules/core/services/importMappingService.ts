@@ -1,5 +1,5 @@
-import { prisma } from '../config/database.js';
-import { logger } from '../utils/logger.js';
+import { prisma } from '../../../config/database.js';
+import { logger } from '../../../utils/logger.js';
 import { ImportMapping, ScheduleActivity } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 

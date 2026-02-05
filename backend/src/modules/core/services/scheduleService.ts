@@ -1,6 +1,6 @@
-import { prisma } from '../config/database.js';
-import { NotFoundError, BadRequestError } from '../utils/errors.js';
-import { logger } from '../utils/logger.js';
+import { prisma } from '../../../config/database.js';
+import { NotFoundError, BadRequestError } from '../../../utils/errors.js';
+import { logger } from '../../../utils/logger.js';
 import { Prisma, Schedule, ScheduleActivity, ScheduleBaseline } from '@prisma/client';
 
 // Constants

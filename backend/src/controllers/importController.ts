@@ -7,7 +7,7 @@ import {
   ExternalActivity,
   ExternalRelationship,
   DiffApproval,
-} from '../services/importMappingService.js';
+} from '../services/index.js';
 import { xlsxImportService, XLSXImportOptions } from '../services/xlsxImportService.js';
 
 interface XerTable {
