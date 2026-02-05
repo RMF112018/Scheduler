@@ -1,6 +1,14 @@
 import { beforeAll, afterAll, afterEach, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 
+// Mock environment variables for testing - MUST be done before PrismaClient instantiation
+vi.stubEnv('NODE_ENV', 'test');
+vi.stubEnv('DATABASE_URL', process.env.DATABASE_URL || 'postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler');
+vi.stubEnv('JWT_SECRET', 'test-jwt-secret-key-for-testing-purposes-only');
+vi.stubEnv('JWT_EXPIRES_IN', '15m');
+vi.stubEnv('JWT_REFRESH_SECRET', 'test-jwt-refresh-secret-key-for-testing');
+vi.stubEnv('JWT_REFRESH_EXPIRES_IN', '7d');
+
 // Create a test-specific Prisma client
 const prisma = new PrismaClient({
   datasources: {
@@ -9,13 +17,6 @@ const prisma = new PrismaClient({
     },
   },
 });
-
-// Mock environment variables for testing
-vi.stubEnv('NODE_ENV', 'test');
-vi.stubEnv('JWT_SECRET', 'test-jwt-secret-key-for-testing-purposes-only');
-vi.stubEnv('JWT_EXPIRES_IN', '15m');
-vi.stubEnv('JWT_REFRESH_SECRET', 'test-jwt-refresh-secret-key-for-testing');
-vi.stubEnv('JWT_REFRESH_EXPIRES_IN', '7d');
 
 beforeAll(async () => {
   // Connect to the test database
@@ -48,6 +49,11 @@ async function cleanDatabase() {
     await tx.scheduleBaseline.deleteMany();
     await tx.importMapping.deleteMany();
     
+    // Staff assignment tables
+    await tx.staffAssignmentMonthlyAllocation.deleteMany();
+    await tx.staffAssignment.deleteMany();
+    await tx.projectRoleRate.deleteMany();
+    
     // Third level: Tables that depend on second level
     await tx.scheduleActivity.deleteMany();
     await tx.lookaheadSchedule.deleteMany();
@@ -69,6 +75,7 @@ async function cleanDatabase() {
     await tx.rolePermission.deleteMany();
     await tx.permission.deleteMany();
     await tx.role.deleteMany();
+    await tx.staffRole.deleteMany();
     
     // Eighth level: Company (root level)
     await tx.company.deleteMany();

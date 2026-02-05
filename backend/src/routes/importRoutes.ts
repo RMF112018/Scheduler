@@ -32,8 +32,12 @@ const upload = multer({
 // Routes - all require authentication
 router.use(authenticate);
 
-// Preview import diff before applying
+// Preview import diff before applying (XER)
 router.post('/preview', upload.single('file'), importController.previewImport);
+
+// XLSX-specific routes
+router.post('/xlsx/preview', upload.single('file'), importController.previewXLSX);
+router.post('/xlsx/preview-import', upload.single('file'), importController.previewXLSXImport);
 
 // Execute import
 router.post('/xer', upload.single('file'), importController.importXER);

@@ -8,6 +8,7 @@ import {
   ExternalRelationship,
   DiffApproval,
 } from '../services/importMappingService.js';
+import { xlsxImportService, XLSXImportOptions } from '../services/xlsxImportService.js';
 
 interface XerTable {
   fields: string[];
@@ -306,16 +307,110 @@ export class ImportController {
     }
   }
 
+  async previewXLSX(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.file) {
+        throw new BadRequestError('No file uploaded');
+      }
+
+      const options: XLSXImportOptions = {
+        sheetName: req.body.sheetName,
+        headerRow: req.body.headerRow ? parseInt(req.body.headerRow, 10) : undefined,
+        columnMapping: req.body.columnMapping
+          ? JSON.parse(req.body.columnMapping)
+          : undefined,
+      };
+
+      const preview = await xlsxImportService.previewFile(req.file.buffer, options);
+
+      res.json({
+        message: 'XLSX preview generated',
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        ...preview,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async previewXLSXImport(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.file) {
+        throw new BadRequestError('No file uploaded');
+      }
+
+      const { scheduleId } = req.body;
+      if (!scheduleId) {
+        throw new BadRequestError('scheduleId is required');
+      }
+
+      const options: XLSXImportOptions = {
+        sheetName: req.body.sheetName,
+        headerRow: req.body.headerRow ? parseInt(req.body.headerRow, 10) : undefined,
+        columnMapping: req.body.columnMapping
+          ? JSON.parse(req.body.columnMapping)
+          : undefined,
+      };
+
+      const preview = await xlsxImportService.previewImport(
+        req.file.buffer,
+        scheduleId,
+        options
+      );
+
+      res.json({
+        message: 'XLSX import preview generated',
+        fileName: req.file.originalname,
+        scheduleId,
+        ...preview,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async importXLSX(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.file) {
         throw new BadRequestError('No file uploaded');
       }
 
-      // TODO: Implement XLSX import logic
+      const { scheduleId } = req.body;
+      if (!scheduleId) {
+        throw new BadRequestError('scheduleId is required');
+      }
+
+      const options: XLSXImportOptions = {
+        sheetName: req.body.sheetName,
+        headerRow: req.body.headerRow ? parseInt(req.body.headerRow, 10) : undefined,
+        columnMapping: req.body.columnMapping
+          ? JSON.parse(req.body.columnMapping)
+          : undefined,
+        skipEmptyRows: req.body.skipEmptyRows !== 'false',
+        validateDates: req.body.validateDates !== 'false',
+      };
+
+      const diffApproval = req.body.diffApproval
+        ? JSON.parse(req.body.diffApproval)
+        : undefined;
+
+      const result = await xlsxImportService.importFile(
+        req.file.buffer,
+        scheduleId,
+        options,
+        diffApproval
+      );
+
+      logger.info(
+        `XLSX import completed for schedule ${scheduleId}: ${result.importedCount} new, ${result.updatedCount} updated, ${result.skippedCount} skipped`
+      );
+
       res.json({
-        message: 'XLSX import - to be implemented',
+        message: result.success ? 'XLSX import completed' : 'XLSX import completed with errors',
         fileName: req.file.originalname,
+        scheduleId,
+        result,
       });
     } catch (error) {
       next(error);

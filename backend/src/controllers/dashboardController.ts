@@ -1,121 +1,212 @@
+/**
+ * Dashboard Controller
+ *
+ * Handles HTTP requests for dashboard data including:
+ * - Executive dashboard with portfolio overview
+ * - Project drill-down with detailed metrics
+ * - Financial drill-down with budget vs actual
+ * - Critical delays and risk analysis
+ */
+
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../config/database.js';
+import { dashboardService } from '../services/dashboardService.js';
+import { NotFoundError } from '../utils/errors.js';
 
 export class DashboardController {
-  async getExecutiveDashboard(req: Request, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Get executive dashboard with workflow-gated data
+   */
+  async getExecutiveDashboard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const companyId = req.user!.companyId;
 
-      // Get projects for user's company
-      const projects = await prisma.project.findMany({
-        where: { companyId },
-        include: {
-          schedules: {
-            include: {
-              activities: true,
-            },
-          },
-        },
-      });
+      const dashboard = await dashboardService.getExecutiveDashboard(companyId);
 
-      // Calculate project progress
-      const projectProgress = projects.map((project) => {
-        const allActivities = project.schedules.flatMap((s) => s.activities);
-        const totalActivities = allActivities.length;
-        const completedActivities = allActivities.filter(
-          (a) => a.percentComplete === 100
-        ).length;
-        const progress =
-          totalActivities > 0
-            ? Math.round((completedActivities / totalActivities) * 100)
-            : 0;
-
-        return {
-          id: project.id,
-          name: project.name,
-          progress,
-          status: progress >= 90 ? 'on_track' : progress >= 70 ? 'at_risk' : 'delayed',
-          activitiesTotal: totalActivities,
-          activitiesCompleted: completedActivities,
-        };
-      });
-
-      // TODO: Implement critical delays and financial data
-      res.json({
-        projects: projectProgress,
-        criticalDelays: [],
-        financial: [],
-        lastUpdated: new Date().toISOString(),
-      });
+      res.json(dashboard);
     } catch (error) {
       next(error);
     }
   }
 
-  async getFinancialDrillDown(req: Request, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Get detailed project drill-down
+   */
+  async getProjectDrillDown(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const { projectId } = req.params;
 
-      // TODO: Implement financial drill-down
-      res.json({
-        summary: {
-          totalSpend: 0,
-          remainingBudget: 0,
-          budgetUtilization: 0,
-        },
-        budgetVsActual: [],
-        varianceAnalysis: [],
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getProjectProgress(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { projectId } = req.params;
-
-      const project = await prisma.project.findUnique({
-        where: { id: projectId },
-        include: {
-          schedules: {
-            include: {
-              activities: true,
-            },
-          },
-        },
-      });
-
-      if (!project) {
-        res.status(404).json({ message: 'Project not found' });
-        return;
+      if (!projectId) {
+        throw new NotFoundError('Project ID is required');
       }
 
-      const allActivities = project.schedules.flatMap((s) => s.activities);
-      const totalActivities = allActivities.length;
-      const completedActivities = allActivities.filter(
-        (a) => a.percentComplete === 100
-      ).length;
+      const drillDown = await dashboardService.getProjectDrillDown(projectId);
+
+      res.json(drillDown);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get financial drill-down for a project
+   */
+  async getFinancialDrillDown(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { projectId } = req.params;
+
+      if (!projectId) {
+        throw new NotFoundError('Project ID is required');
+      }
+
+      const financials = await dashboardService.getFinancialDrillDown(projectId);
+
+      res.json(financials);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get project progress summary
+   */
+  async getProjectProgress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { projectId } = req.params;
+
+      if (!projectId) {
+        throw new NotFoundError('Project ID is required');
+      }
+
+      const drillDown = await dashboardService.getProjectDrillDown(projectId);
 
       res.json({
-        projectId,
-        projectName: project.name,
-        totalActivities,
-        completedActivities,
-        progress:
-          totalActivities > 0
-            ? Math.round((completedActivities / totalActivities) * 100)
-            : 0,
+        projectId: drillDown.project.projectId,
+        projectName: drillDown.project.projectName,
+        totalActivities: drillDown.project.activitiesTotal,
+        completedActivities: drillDown.project.activitiesCompleted,
+        progress: drillDown.project.overallProgress,
+        status: drillDown.project.status,
+        schedulePerformanceIndex: drillDown.project.schedulePerformanceIndex,
+        criticalPathHealth: drillDown.project.criticalPathHealth,
       });
     } catch (error) {
       next(error);
     }
   }
 
-  async getCriticalDelays(req: Request, res: Response, next: NextFunction): Promise<void> {
+  /**
+   * Get critical delays across all projects
+   */
+  async getCriticalDelays(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
-      // TODO: Implement critical delays logic
-      res.json([]);
+      const companyId = req.user!.companyId;
+      const { limit } = req.query;
+
+      const dashboard = await dashboardService.getExecutiveDashboard(companyId);
+      const maxDelays = limit ? parseInt(limit as string, 10) : 20;
+
+      res.json({
+        delays: dashboard.criticalDelays.slice(0, maxDelays),
+        totalCount: dashboard.criticalDelays.length,
+        summary: {
+          critical: dashboard.criticalDelays.filter((d) => d.impact === 'critical')
+            .length,
+          high: dashboard.criticalDelays.filter((d) => d.impact === 'high').length,
+          medium: dashboard.criticalDelays.filter((d) => d.impact === 'medium').length,
+          low: dashboard.criticalDelays.filter((d) => d.impact === 'low').length,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get resource utilization summary
+   */
+  async getResourceUtilization(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const companyId = req.user!.companyId;
+
+      const dashboard = await dashboardService.getExecutiveDashboard(companyId);
+
+      res.json({
+        utilization: dashboard.resourceUtilization,
+        summary: {
+          totalRoles: dashboard.resourceUtilization.length,
+          averageUtilization:
+            dashboard.resourceUtilization.length > 0
+              ? Math.round(
+                  dashboard.resourceUtilization.reduce(
+                    (sum, r) => sum + r.utilizationPercentage,
+                    0
+                  ) / dashboard.resourceUtilization.length
+                )
+              : 0,
+          overAllocatedStaff: dashboard.resourceUtilization.reduce(
+            (sum, r) => sum + r.overAllocatedCount,
+            0
+          ),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get portfolio health summary
+   */
+  async getPortfolioHealth(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const companyId = req.user!.companyId;
+
+      const dashboard = await dashboardService.getExecutiveDashboard(companyId);
+
+      res.json({
+        health: dashboard.summary.overallPortfolioHealth,
+        projects: {
+          total: dashboard.summary.totalProjects,
+          onTrack: dashboard.summary.projectsOnTrack,
+          atRisk: dashboard.summary.projectsAtRisk,
+          delayed: dashboard.summary.projectsDelayed,
+        },
+        budget: {
+          total: dashboard.summary.totalBudget,
+          spent: dashboard.summary.totalSpent,
+          utilization: dashboard.summary.budgetUtilization,
+        },
+        lastUpdated: dashboard.lastUpdated,
+        dataIntegrityNote: dashboard.dataIntegrityNote,
+      });
     } catch (error) {
       next(error);
     }

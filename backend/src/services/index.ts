@@ -6,6 +6,9 @@ export { importMappingService, ImportMappingService } from './importMappingServi
 export { scheduleValidationService, ScheduleValidationService } from './scheduleValidationService.js';
 export { staffService, StaffService } from './staffService.js';
 export { forecastingService, ForecastingService } from './forecastingService.js';
+export { exportService, ExportService } from './exportService.js';
+export { xlsxImportService, XLSXImportService } from './xlsxImportService.js';
+export { dashboardService, DashboardService } from './dashboardService.js';
 export {
   initializeSocketIO,
   notifyProjectUpdate,
@@ -77,3 +80,27 @@ export type {
   StaffSuggestion,
   NewHireNeedsResult,
 } from './forecastingService.js';
+
+export type {
+  ExportOptions,
+  PDFExportOptions,
+  ScheduleExportData,
+  VarianceData,
+} from './exportService.js';
+
+export type {
+  ColumnMapping,
+  XLSXImportOptions,
+  XLSXPreviewResult,
+  XLSXImportResult,
+  ValidationError,
+} from './xlsxImportService.js';
+
+export type {
+  ProjectHealthMetric,
+  CriticalDelay,
+  FinancialSummary,
+  ResourceUtilization,
+  ExecutiveDashboard,
+  ProjectDrillDown,
+} from './dashboardService.js';
