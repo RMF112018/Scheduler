@@ -18,9 +18,11 @@ import Login from '@components/common/Login';
 import Register from '@components/common/Register';
 import Settings from '@components/settings/Settings';
 import NotFound from '@components/common/NotFound';
+import { UserManagementView } from '@components/admin';
 
 // Auth wrapper
 import ProtectedRoute from '@components/common/ProtectedRoute';
+import AdminRoute from '@components/common/AdminRoute';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -53,6 +55,12 @@ function App() {
             <Route path="/lookahead" element={<LookaheadList />} />
             <Route path="/lookahead/:lookaheadId" element={<LookaheadView />} />
             <Route path="/settings" element={<Settings />} />
+          </Route>
+          {/* Admin routes */}
+          <Route element={<AdminRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/admin/users" element={<UserManagementView />} />
+            </Route>
           </Route>
         </Route>
 

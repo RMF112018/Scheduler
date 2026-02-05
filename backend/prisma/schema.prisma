@@ -41,20 +41,28 @@ model User {
   activityComments    LookaheadActivityComment[] @relation("CommentAuthor")
   commentReactions    LookaheadCommentReaction[] @relation("ReactionUser")
   auditLogs           AuditLog[]
+  userRoles           UserRole[] // Phase 11: User-role assignments
+  projectPermissions  ProjectPermission[] // Phase 11: Project-specific permission overrides
 
   @@map("users")
 }
 
 model Permission {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id          String    @id @default(uuid())
+  name        String    @unique // Legacy: permission name (e.g., "schedule:write")
   description String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  resource    String? // Phase 11: Resource type (e.g., "schedule", "lookahead", "project")
+  action      String? // Phase 11: Action (e.g., "read", "write", "approve", "delete")
+  scope       String?   @default("project") // Phase 11: Scope ("project", "company", "global")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
 
   // Relations
   userPermissions UserPermission[]
   rolePermissions RolePermission[]
+  // Note: ProjectPermission stores permission as string key, not foreign key
 
+  @@unique([resource, action, scope])
   @@map("permissions")
 }
 
@@ -73,14 +81,18 @@ model UserPermission {
 }
 
 model Role {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id                 String    @id @default(uuid())
+  name               String    @unique
+  description        String?
+  isSystem           Boolean   @default(false) @map("is_system") // Cannot be deleted if true
+  defaultPermissions Json?     @map("default_permissions") // Default permissions JSON for this role
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime? @updatedAt @map("updated_at")
 
   // Relations
   permissions    RolePermission[]
   projectMembers ProjectMember[]
+  userRoles      UserRole[] // Phase 11: User-role assignments
 
   @@map("roles")
 }
@@ -110,11 +122,11 @@ model Company {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  users              User[]
-  projects           Project[]
-  staffMembers       StaffMember[]
-  staffRoles         StaffRole[]
-  auditLogs          AuditLog[]
+  users                User[]
+  projects             Project[]
+  staffMembers         StaffMember[]
+  staffRoles           StaffRole[]
+  auditLogs            AuditLog[]
   webhookSubscriptions WebhookSubscription[]
 
   @@map("companies")
@@ -145,6 +157,8 @@ model Project {
   settings           ProjectSettings?
   staffAssignments   StaffAssignment[]
   roleRates          ProjectRoleRate[]
+  userRoles          UserRole[] // Phase 11: User-role assignments scoped to this project
+  projectPermissions ProjectPermission[] // Phase 11: Project-specific permission overrides
 
   @@map("projects")
 }
@@ -647,19 +661,19 @@ model LookaheadCommentReaction {
 // ============================================================================
 
 model AuditLog {
-  id          String   @id @default(uuid())
-  entityType  String   @map("entity_type")  // 'Schedule', 'Activity', 'Project', etc.
-  entityId    String   @map("entity_id")
-  action      String   // 'create', 'update', 'delete'
-  userId      String   @map("user_id")
-  companyId   String   @map("company_id")
-  changes     Json     // { field: { old: value, new: value } }
-  metadata    Json?    // Additional context (IP, user agent, etc.)
-  createdAt   DateTime @default(now()) @map("created_at")
-  
+  id         String   @id @default(uuid())
+  entityType String   @map("entity_type") // 'Schedule', 'Activity', 'Project', etc.
+  entityId   String   @map("entity_id")
+  action     String // 'create', 'update', 'delete'
+  userId     String   @map("user_id")
+  companyId  String   @map("company_id")
+  changes    Json // { field: { old: value, new: value } }
+  metadata   Json? // Additional context (IP, user agent, etc.)
+  createdAt  DateTime @default(now()) @map("created_at")
+
   user    User    @relation(fields: [userId], references: [id])
   company Company @relation(fields: [companyId], references: [id])
-  
+
   @@index([entityType, entityId])
   @@index([userId])
   @@index([companyId, createdAt])
@@ -671,19 +685,65 @@ model AuditLog {
 // ============================================================================
 
 model WebhookSubscription {
-  id             String    @id @default(uuid())
-  companyId      String    @map("company_id")
+  id              String    @id @default(uuid())
+  companyId       String    @map("company_id")
   url             String
-  events          String[]  // Array of EventType
-  secret          String?   // For HMAC signing
+  events          String[] // Array of EventType
+  secret          String? // For HMAC signing
   isActive        Boolean   @default(true) @map("is_active")
   lastTriggeredAt DateTime? @map("last_triggered_at")
   failureCount    Int       @default(0) @map("failure_count")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
-  
+
   company Company @relation(fields: [companyId], references: [id])
-  
+
   @@index([companyId, isActive])
   @@map("webhook_subscriptions")
+}
+
+// ============================================================================
+// Phase 11: Advanced User Management & Role-Based Permissions
+// ============================================================================
+
+// UserRole: Junction model for user-role assignments with optional project scoping
+model UserRole {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  roleId     String   @map("role_id")
+  projectId  String?  @map("project_id") // null = company-wide, specific project = scoped
+  assignedBy String   @map("assigned_by")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role    Role     @relation(fields: [roleId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([roleId])
+  @@index([projectId])
+  @@index([userId, projectId])
+  @@map("user_roles")
+}
+
+// ProjectPermission: Project-specific permission overrides
+model ProjectPermission {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  projectId  String   @map("project_id")
+  permission String // Permission key (e.g., 'schedule:write', 'lookahead:approve')
+  granted    Boolean  @default(true)
+  grantedBy  String   @map("granted_by")
+  grantedAt  DateTime @default(now()) @map("granted_at")
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // Note: Permission relation is not needed as we store permission as string key
+
+  @@unique([userId, projectId, permission])
+  @@index([userId, projectId])
+  @@index([projectId])
+  @@map("project_permissions")
 }

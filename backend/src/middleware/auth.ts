@@ -32,7 +32,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
   })(req, res, next);
 };
 
-// Role-based access control
+// Role-based access control (checks legacy User.role field)
 export const requireRole = (...roles: string[]) => {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {
@@ -47,7 +47,42 @@ export const requireRole = (...roles: string[]) => {
   };
 };
 
-// Permission-based access control
+// Phase 11: Enhanced role-based access control (checks UserRole assignments)
+export const requireRoleAssignment = (...roleNames: string[]) => {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      return next(new UnauthorizedError('Authentication required'));
+    }
+
+    try {
+      // Check legacy role field first (for backward compatibility)
+      if (roleNames.includes(req.user.role)) {
+        return next();
+      }
+
+      // Check UserRole assignments
+      const userRoles = await prisma.userRole.findMany({
+        where: { userId: req.user.id },
+        include: { role: true },
+      });
+
+      const hasRole = userRoles.some((ur) => roleNames.includes(ur.role.name));
+
+      if (!hasRole) {
+        return next(new ForbiddenError(`Insufficient role. Required: ${roleNames.join(', ')}`));
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// Phase 11: Admin-only access control
+export const requireAdmin = requireRoleAssignment('administrator', 'admin');
+
+// Permission-based access control (legacy - checks UserPermission table)
 export const requirePermission = (permission: string) => {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     if (!req.user) {
@@ -67,6 +102,37 @@ export const requirePermission = (permission: string) => {
 
       if (!hasPermission) {
         return next(new ForbiddenError(`Permission '${permission}' required`));
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// Phase 11: Enhanced permission-based access control (checks PermissionService)
+export const requirePermissionCheck = (resource: string, action: string) => {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      return next(new UnauthorizedError('Authentication required'));
+    }
+
+    try {
+      const { permissionService } = await import('../services/permissionService.js');
+      const projectId = req.params.projectId || req.body.projectId;
+
+      const hasPermission = await permissionService.hasPermission(
+        req.user.id,
+        resource,
+        action,
+        projectId
+      );
+
+      if (!hasPermission) {
+        return next(
+          new ForbiddenError(`Permission '${resource}:${action}' required${projectId ? ` for project ${projectId}` : ''}`)
+        );
       }
 
       next();

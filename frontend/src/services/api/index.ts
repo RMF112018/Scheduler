@@ -20,3 +20,16 @@ export type {
   CommentUser,
   MentionableUser,
 } from './commentApi';
+export { userManagementApi } from './userManagementApi';
+export type {
+  User,
+  UserRole,
+  ProjectPermission,
+  Role,
+  CreateUserInput,
+  UpdateUserInput,
+  UserSearchFilters,
+  PaginatedUsers,
+  ImportResult,
+  EffectivePermission,
+} from './userManagementApi';

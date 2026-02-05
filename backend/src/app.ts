@@ -28,6 +28,7 @@ import forecastingRoutes from './routes/forecastingRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
 import webhookRoutes from './routes/webhookRoutes.js';
+import userManagementRoutes from './routes/userManagementRoutes.js';
 
 const app: Application = express();
 
@@ -106,6 +107,7 @@ app.use('/api/v1/forecasts', forecastingRoutes);
 app.use('/api/v1', commentRoutes); // Comments are nested under activities and projects
 app.use('/api/v1/audit', auditRoutes);
 app.use('/api/v1/webhooks', webhookRoutes);
+app.use('/api/v1/admin', userManagementRoutes); // Phase 11: Admin-only user management
 
 // Error handling
 app.use(notFoundHandler);

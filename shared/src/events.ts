@@ -31,7 +31,14 @@ export type EventType =
   | 'staff.deleted'
   | 'attachment.uploaded'
   | 'attachment.approved'
-  | 'attachment.rejected';
+  | 'attachment.rejected'
+  | 'user.created'
+  | 'user.updated'
+  | 'user.deleted'
+  | 'role.assigned'
+  | 'role.removed'
+  | 'permission.granted'
+  | 'permission.revoked';
 
 // ============================================================================
 // Base Event Interface
@@ -120,6 +127,52 @@ export interface ResourceUnassignedEvent extends BaseEvent {
   staffMemberId: string;
 }
 
+// Phase 11: User Management Events
+export interface UserCreatedEvent extends BaseEvent {
+  type: 'user.created';
+  userEmail: string;
+  userName: string;
+  defaultRoleId?: string;
+}
+
+export interface UserUpdatedEvent extends BaseEvent {
+  type: 'user.updated';
+  changes: Record<string, { old: unknown; new: unknown }>;
+}
+
+export interface UserDeletedEvent extends BaseEvent {
+  type: 'user.deleted';
+  userEmail: string;
+  userName: string;
+}
+
+export interface RoleAssignedEvent extends BaseEvent {
+  type: 'role.assigned';
+  roleId: string;
+  roleName: string;
+  projectId?: string | null;
+}
+
+export interface RoleRemovedEvent extends BaseEvent {
+  type: 'role.removed';
+  roleId: string;
+  roleName: string;
+  projectId?: string | null;
+}
+
+export interface PermissionGrantedEvent extends BaseEvent {
+  type: 'permission.granted';
+  permission: string;
+  projectId: string;
+  granted: boolean;
+}
+
+export interface PermissionRevokedEvent extends BaseEvent {
+  type: 'permission.revoked';
+  permission: string;
+  projectId: string;
+}
+
 // ============================================================================
 // Union Type for All Events
 // ============================================================================
@@ -136,4 +189,11 @@ export type Event =
   | ApprovalRejectedEvent
   | ResourceAssignedEvent
   | ResourceUnassignedEvent
+  | UserCreatedEvent
+  | UserUpdatedEvent
+  | UserDeletedEvent
+  | RoleAssignedEvent
+  | RoleRemovedEvent
+  | PermissionGrantedEvent
+  | PermissionRevokedEvent
   | BaseEvent; // Fallback for other event types
