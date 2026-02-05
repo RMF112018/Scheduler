@@ -41,12 +41,12 @@ const Dashboard: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Project Progress
               </Typography>
-              {executive?.projects.length ? (
+              {executive?.projects?.length ? (
                 executive.projects.map((project) => (
-                  <Box key={project.id} sx={{ mb: 2 }}>
-                    <Typography variant="body1">{project.name}</Typography>
+                  <Box key={project.projectId} sx={{ mb: 2 }}>
+                    <Typography variant="body1">{project.projectName}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {project.progress}% complete - {project.activitiesCompleted}/{project.activitiesTotal} activities
+                      {project.overallProgress}% complete - {project.activitiesCompleted}/{project.activitiesTotal} activities
                     </Typography>
                   </Box>
                 ))
@@ -64,9 +64,9 @@ const Dashboard: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Critical Delays
               </Typography>
-              {executive?.criticalDelays.length ? (
-                executive.criticalDelays.map((delay) => (
-                  <Box key={delay.id} sx={{ mb: 2 }}>
+              {executive?.criticalDelays?.length ? (
+                executive.criticalDelays.map((delay, index) => (
+                  <Box key={`${delay.projectId}-${delay.activityId}-${index}`} sx={{ mb: 2 }}>
                     <Typography variant="body2" fontWeight={600}>
                       {delay.activityName}
                     </Typography>
@@ -90,12 +90,12 @@ const Dashboard: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Financial Summary
               </Typography>
-              {executive?.financial.length ? (
-                executive.financial.map((item) => (
+              {executive?.financials?.length ? (
+                executive.financials.map((item) => (
                   <Box key={item.projectId} sx={{ mb: 2 }}>
                     <Typography variant="body1">{item.projectName}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Budget: ${item.totalBudget.toLocaleString()} | Spent: ${item.totalSpend.toLocaleString()} | Remaining: ${item.remainingBudget.toLocaleString()}
+                      Budget: ${item.budgetedCost.toLocaleString()} | Spent: ${item.actualCost.toLocaleString()} | Remaining: ${(item.budgetedCost - item.actualCost).toLocaleString()}
                     </Typography>
                   </Box>
                 ))

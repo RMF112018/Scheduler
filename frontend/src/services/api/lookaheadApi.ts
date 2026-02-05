@@ -8,7 +8,7 @@ import type {
 export const lookaheadApi = {
   async getLookaheads(projectId: string): Promise<LookaheadSchedule[]> {
     const response = await apiClient.get<LookaheadSchedule[]>(
-      `/projects/${projectId}/lookaheads`
+      `/lookaheads/project/${projectId}`
     );
     return response.data;
   },

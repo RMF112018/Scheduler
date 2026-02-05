@@ -40,6 +40,7 @@ model User {
   lookaheadVersions   LookaheadVersion[]         @relation("VersionApprover")
   activityComments    LookaheadActivityComment[] @relation("CommentAuthor")
   commentReactions    LookaheadCommentReaction[] @relation("ReactionUser")
+  auditLogs           AuditLog[]
 
   @@map("users")
 }
@@ -109,10 +110,12 @@ model Company {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  users        User[]
-  projects     Project[]
-  staffMembers StaffMember[]
-  staffRoles   StaffRole[]
+  users              User[]
+  projects           Project[]
+  staffMembers       StaffMember[]
+  staffRoles         StaffRole[]
+  auditLogs          AuditLog[]
+  webhookSubscriptions WebhookSubscription[]
 
   @@map("companies")
 }
@@ -644,19 +647,43 @@ model LookaheadCommentReaction {
 // ============================================================================
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String?  @map("user_id")
-  action     String
-  entityType String   @map("entity_type")
-  entityId   String   @map("entity_id")
-  oldData    Json?    @map("old_data")
-  newData    Json?    @map("new_data")
-  ipAddress  String?  @map("ip_address")
-  userAgent  String?  @map("user_agent")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@index([userId])
+  id          String   @id @default(uuid())
+  entityType  String   @map("entity_type")  // 'Schedule', 'Activity', 'Project', etc.
+  entityId    String   @map("entity_id")
+  action      String   // 'create', 'update', 'delete'
+  userId      String   @map("user_id")
+  companyId   String   @map("company_id")
+  changes     Json     // { field: { old: value, new: value } }
+  metadata    Json?    // Additional context (IP, user agent, etc.)
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  user    User    @relation(fields: [userId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+  
   @@index([entityType, entityId])
-  @@index([createdAt])
+  @@index([userId])
+  @@index([companyId, createdAt])
   @@map("audit_logs")
+}
+
+// ============================================================================
+// Webhook Subscription Models
+// ============================================================================
+
+model WebhookSubscription {
+  id             String    @id @default(uuid())
+  companyId      String    @map("company_id")
+  url             String
+  events          String[]  // Array of EventType
+  secret          String?   // For HMAC signing
+  isActive        Boolean   @default(true) @map("is_active")
+  lastTriggeredAt DateTime? @map("last_triggered_at")
+  failureCount    Int       @default(0) @map("failure_count")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  company Company @relation(fields: [companyId], references: [id])
+  
+  @@index([companyId, isActive])
+  @@map("webhook_subscriptions")
 }

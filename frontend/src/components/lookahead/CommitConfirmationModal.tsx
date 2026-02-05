@@ -131,15 +131,19 @@ const CommitConfirmationModal: React.FC<CommitConfirmationModalProps> = ({
   const [showNoteInput, setShowNoteInput] = useState(false);
 
   // Combine conflicts and validation issues
+  // Ensure conflicts and validationIssues are arrays
+  const safeConflicts = Array.isArray(conflicts) ? conflicts : [];
+  const safeValidationIssues = Array.isArray(validationIssues) ? validationIssues : [];
+  
   const allIssues = [
-    ...conflicts.map((c) => ({
+    ...safeConflicts.map((c) => ({
       id: c.activityId,
       type: c.type,
       severity: c.severity as 'high' | 'medium' | 'low',
       message: c.message,
       activityName: c.activityName,
     })),
-    ...validationIssues.map((v) => ({
+    ...safeValidationIssues.map((v) => ({
       id: v.activityId,
       type: v.ruleType,
       severity: v.severity as 'error' | 'warning' | 'info',

@@ -1,6 +1,12 @@
 // Shared types for Construction Scheduling Application
 // These types are used by both frontend and backend
 
+// Phase 9: Export Prisma types
+export * from './types.js';
+
+// Phase 9: Export event types
+export * from './events.js';
+
 // ============================================================================
 // User & Auth Types
 // ============================================================================

@@ -3,39 +3,65 @@ import { dashboardApi } from '@services/api/dashboardApi';
 
 // Types
 export interface ProjectProgress {
-  id: string;
-  name: string;
-  progress: number;
-  status: 'on_track' | 'at_risk' | 'delayed';
+  projectId: string;
+  projectName: string;
+  status: 'on_track' | 'at_risk' | 'delayed' | 'critical';
+  overallProgress: number;
+  schedulePerformanceIndex: number;
+  costPerformanceIndex: number;
+  criticalPathHealth: 'healthy' | 'at_risk' | 'delayed';
   activitiesTotal: number;
   activitiesCompleted: number;
+  activitiesInProgress: number;
+  activitiesDelayed: number;
+  daysRemaining: number;
+  lastApprovedUpdate: string | null;
 }
 
 export interface DelayAlert {
-  id: string;
   projectId: string;
   projectName: string;
   activityId: string;
+  activityCode: string;
   activityName: string;
+  plannedFinish: string | Date;
+  forecastFinish: string | Date;
   delayDays: number;
+  impact: 'low' | 'medium' | 'high' | 'critical';
   isCriticalPath: boolean;
-  impact: string;
+  cause?: string;
 }
 
 export interface FinancialSummary {
   projectId: string;
   projectName: string;
-  totalBudget: number;
-  totalSpend: number;
-  remainingBudget: number;
-  budgetUtilization: number;
+  budgetedCost: number;
+  actualCost: number;
+  earnedValue: number;
+  plannedValue: number;
+  costVariance: number;
+  scheduleVariance: number;
+  estimateAtCompletion: number;
+  estimateToComplete: number;
 }
 
 export interface ExecutiveDashboardData {
+  summary?: {
+    totalProjects: number;
+    projectsOnTrack: number;
+    projectsAtRisk: number;
+    projectsDelayed: number;
+    overallPortfolioHealth: 'healthy' | 'at_risk' | 'critical';
+    totalBudget: number;
+    totalSpent: number;
+    budgetUtilization: number;
+  };
   projects: ProjectProgress[];
   criticalDelays: DelayAlert[];
-  financial: FinancialSummary[];
+  financials: FinancialSummary[]; // Backend returns 'financials' (plural)
+  resourceUtilization?: unknown[];
   lastUpdated: string;
+  dataIntegrityNote?: string;
 }
 
 interface DashboardState {

@@ -140,7 +140,7 @@ const LookaheadView: React.FC = () => {
   }
 
   // Count uncommitted "will do" activities
-  const uncommittedCount = current.activities.filter(
+  const uncommittedCount = (current.activities || []).filter(
     (a) => a.plannerStatus === 'will_do' && !a.isCommitted
   ).length;
 
@@ -179,7 +179,7 @@ const LookaheadView: React.FC = () => {
           <Typography variant="body2" color="text.secondary">
             {new Date(current.startDate).toLocaleDateString()} -{' '}
             {new Date(current.endDate).toLocaleDateString()} |{' '}
-            {current.activities.length} activities
+            {(current.activities || []).length} activities
           </Typography>
         </Box>
 
@@ -220,16 +220,16 @@ const LookaheadView: React.FC = () => {
       </Box>
 
       {/* Conflict Alert Panel */}
-      {current.conflicts.length > 0 && (
+      {current.conflicts && current.conflicts.length > 0 && (
         <Box sx={{ mb: 3 }}>
           <ConflictAlertPanel
             conflicts={current.conflicts}
-            activities={current.activities}
+            activities={current.activities || []}
             onActivityClick={handleActivityClick}
             onRefresh={handleRefreshConflicts}
             variant="banner"
             collapsible
-            defaultExpanded={current.conflicts.filter((c) => c.severity === 'high').length > 0}
+            defaultExpanded={(current.conflicts || []).filter((c) => c.severity === 'high').length > 0}
           />
         </Box>
       )}
@@ -244,7 +244,7 @@ const LookaheadView: React.FC = () => {
       {/* View Content */}
       {viewMode === 'calendar' ? (
         <CalendarView
-          activities={current.activities}
+          activities={current.activities || []}
           startDate={current.startDate}
           endDate={current.endDate}
           onActivityClick={handleActivityClick}
@@ -252,7 +252,7 @@ const LookaheadView: React.FC = () => {
         />
       ) : (
         <TaskListView
-          activities={current.activities}
+          activities={current.activities || []}
           onActivityClick={handleActivityClick}
           onStatusChange={handleStatusChange}
           onBulkStatusChange={handleBulkStatusChange}
@@ -266,8 +266,8 @@ const LookaheadView: React.FC = () => {
         onConfirm={handleCommit}
         lookaheadId={current.id}
         lookaheadName={current.name}
-        activities={current.activities}
-        conflicts={current.conflicts}
+        activities={current.activities || []}
+        conflicts={current.conflicts || []}
         onOpenIssuesPanel={handleOpenIssuesPanel}
       />
 
@@ -285,8 +285,8 @@ const LookaheadView: React.FC = () => {
             Schedule Issues
           </Typography>
           <ConflictAlertPanel
-            conflicts={current.conflicts}
-            activities={current.activities}
+            conflicts={current.conflicts || []}
+            activities={current.activities || []}
             onActivityClick={(activityId) => {
               handleActivityClick(activityId);
               setIssuesPanelOpen(false);

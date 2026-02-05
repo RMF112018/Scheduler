@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { NotificationController } from '../controllers/notificationController.js';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 const notificationController = new NotificationController();
@@ -42,6 +42,6 @@ router.delete('/delete-many', notificationController.deleteManyNotifications);
 router.delete('/delete-read', notificationController.deleteAllRead);
 
 // Send test notification (admin only)
-router.post('/test', authorize(['admin']), notificationController.sendTestNotification);
+router.post('/test', requireRole('admin'), notificationController.sendTestNotification);
 
 export default router;

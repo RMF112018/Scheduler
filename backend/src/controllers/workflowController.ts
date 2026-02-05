@@ -4,6 +4,8 @@ import { lookaheadService } from '../services/index.js';
 import { notifyApprovalStatus, notifyLookaheadUpdate } from '../services/socketService.js';
 import { NotFoundError, BadRequestError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+import { eventBus } from '../services/eventBus.js';
+import type { ApprovalCompletedEvent, ApprovalRejectedEvent } from '@shared/events';
 
 // Types for attachment approval
 interface AttachmentApprovalDto {
@@ -151,6 +153,41 @@ export class WorkflowController {
       // Merge approved changes to master schedule
       await lookaheadService.mergeToMaster(approvalId);
 
+      // Get lookahead schedule details for event
+      const lookaheadSchedule = await prisma.lookaheadSchedule.findUnique({
+        where: { id: approval.lookaheadScheduleId },
+        include: {
+          activities: true,
+          project: true,
+        },
+      });
+
+      // Publish approval completed event
+      if (lookaheadSchedule) {
+        const approvalEvent: ApprovalCompletedEvent = {
+          type: 'approval.completed',
+          entityId: approvalId,
+          entityType: 'WorkflowApproval',
+          userId,
+          companyId: req.user!.companyId,
+          timestamp: new Date(),
+          lookaheadId: approval.lookaheadScheduleId,
+          approvedBy: userId,
+          activitiesCount: lookaheadSchedule.activities.length,
+          metadata: {
+            projectId: lookaheadSchedule.projectId,
+            projectName: lookaheadSchedule.project.name,
+            lookaheadName: lookaheadSchedule.name,
+            notes,
+          },
+        };
+
+        await eventBus.publish(approvalEvent).catch((err) => {
+          // Don't fail the request if event publishing fails
+          logger.error('Failed to publish approval completed event:', err);
+        });
+      }
+
       // Notify connected clients
       notifyApprovalStatus(approval.lookaheadScheduleId, {
         status: 'approved',
@@ -241,6 +278,41 @@ export class WorkflowController {
           hasPostCommitTweaks: false,
         },
       });
+
+      // Get lookahead schedule details for event
+      const lookaheadSchedule = await prisma.lookaheadSchedule.findUnique({
+        where: { id: approval.lookaheadScheduleId },
+        include: {
+          activities: true,
+          project: true,
+        },
+      });
+
+      // Publish approval rejected event
+      if (lookaheadSchedule) {
+        const rejectionEvent: ApprovalRejectedEvent = {
+          type: 'approval.rejected',
+          entityId: approvalId,
+          entityType: 'WorkflowApproval',
+          userId,
+          companyId: req.user!.companyId,
+          timestamp: new Date(),
+          lookaheadId: approval.lookaheadScheduleId,
+          rejectedBy: userId,
+          rejectionReason: reason,
+          metadata: {
+            projectId: lookaheadSchedule.projectId,
+            projectName: lookaheadSchedule.project.name,
+            lookaheadName: lookaheadSchedule.name,
+            category,
+          },
+        };
+
+        await eventBus.publish(rejectionEvent).catch((err) => {
+          // Don't fail the request if event publishing fails
+          logger.error('Failed to publish approval rejected event:', err);
+        });
+      }
 
       // Notify connected clients
       notifyApprovalStatus(approval.lookaheadScheduleId, {

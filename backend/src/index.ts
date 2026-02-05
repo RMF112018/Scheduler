@@ -4,6 +4,7 @@ import app from './app.js';
 import { initializeSocketIO } from './services/socketService.js';
 import { prisma } from './config/database.js';
 import { logger } from './utils/logger.js';
+import { eventBus } from './services/eventBus.js';
 
 const PORT = process.env.PORT || 4000;
 
@@ -13,12 +14,19 @@ const server = http.createServer(app);
 // Initialize Socket.io
 initializeSocketIO(server);
 
+// Initialize event bus processors
+eventBus.startProcessors();
+
 // Graceful shutdown
 const shutdown = async () => {
   logger.info('Shutting down gracefully...');
   
   server.close(async () => {
     logger.info('HTTP server closed');
+    
+    // Stop event bus processors
+    await eventBus.stopProcessors();
+    logger.info('Event bus processors stopped');
     
     // Disconnect Prisma
     await prisma.$disconnect();

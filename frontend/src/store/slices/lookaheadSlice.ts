@@ -37,9 +37,9 @@ export interface LookaheadSchedule {
   endDate: string;
   status: 'active' | 'submitted' | 'approved' | 'rejected';
   activities: LookaheadActivity[];
-  conflicts: Conflict[];
-  hasUncommittedChanges: boolean;
-  hasPostCommitTweaks: boolean;
+  conflicts?: Conflict[]; // Optional - conflicts are fetched separately
+  hasUncommittedChanges?: boolean;
+  hasPostCommitTweaks?: boolean;
   lastSyncedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -142,18 +142,22 @@ const lookaheadSlice = createSlice({
       action: PayloadAction<{ activityId: string; conflicts: Conflict[] }>
     ) => {
       if (state.current) {
+        const safeConflicts = Array.isArray(action.payload.conflicts) 
+          ? action.payload.conflicts 
+          : [];
         const activity = state.current.activities.find(
           (a) => a.id === action.payload.activityId
         );
         if (activity) {
           activity.hasConflict = true;
-          activity.conflicts = action.payload.conflicts;
+          activity.conflicts = safeConflicts;
         }
+        const existingConflicts = state.current.conflicts || [];
         state.current.conflicts = [
-          ...state.current.conflicts.filter(
+          ...existingConflicts.filter(
             (c) => c.activityId !== action.payload.activityId
           ),
-          ...action.payload.conflicts,
+          ...safeConflicts,
         ];
       }
     },
@@ -180,7 +184,11 @@ const lookaheadSlice = createSlice({
       })
       .addCase(fetchLookahead.fulfilled, (state, action) => {
         state.loading = false;
-        state.current = action.payload;
+        state.current = {
+          ...action.payload,
+          activities: action.payload.activities || [],
+          conflicts: action.payload.conflicts || [],
+        };
       })
       .addCase(fetchLookahead.rejected, (state, action) => {
         state.loading = false;
@@ -209,7 +217,8 @@ const lookaheadSlice = createSlice({
       // Check conflicts
       .addCase(checkConflicts.fulfilled, (state, action) => {
         if (state.current) {
-          state.current.conflicts = action.payload;
+          // Ensure conflicts is always an array
+          state.current.conflicts = Array.isArray(action.payload) ? action.payload : [];
         }
       });
   },

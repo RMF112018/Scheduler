@@ -1,5 +1,6 @@
 // Lookahead Components
 export { default as LookaheadView } from './LookaheadView';
+export { default as LookaheadList } from './LookaheadList';
 export { default as CalendarView } from './CalendarView';
 export { default as TaskListView } from './TaskListView';
 export { default as ConflictAlertPanel } from './ConflictAlertPanel';

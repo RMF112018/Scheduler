@@ -8,6 +8,8 @@ import Layout from '@components/common/Layout';
 import Dashboard from '@components/dashboards/Dashboard';
 import ScheduleList from '@components/schedules/ScheduleList';
 import ScheduleDetail from '@components/schedules/ScheduleDetail';
+import ScheduleForm from '@components/schedules/ScheduleForm';
+import LookaheadList from '@components/lookahead/LookaheadList';
 import LookaheadView from '@components/lookahead/LookaheadView';
 import Login from '@components/common/Login';
 import Register from '@components/common/Register';
@@ -29,7 +31,9 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/schedules" element={<ScheduleList />} />
+            <Route path="/schedules/new" element={<ScheduleForm />} />
             <Route path="/schedules/:scheduleId" element={<ScheduleDetail />} />
+            <Route path="/lookahead" element={<LookaheadList />} />
             <Route path="/lookahead/:lookaheadId" element={<LookaheadView />} />
           </Route>
         </Route>

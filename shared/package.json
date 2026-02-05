@@ -8,6 +8,9 @@
     "build": "tsc",
     "clean": "rm -rf dist node_modules"
   },
+  "dependencies": {
+    "@prisma/client": "^5.10.2"
+  },
   "devDependencies": {
     "typescript": "^5.3.3"
   }

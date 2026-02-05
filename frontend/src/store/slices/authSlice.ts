@@ -9,7 +9,7 @@ interface User {
   lastName: string;
   role: string;
   companyId: string;
-  permissions: string[];
+  permissions?: string[]; // Optional - backend doesn't always return this
 }
 
 interface AuthState {

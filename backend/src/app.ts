@@ -24,6 +24,8 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
 import forecastingRoutes from './routes/forecastingRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
+import auditRoutes from './routes/auditRoutes.js';
+import webhookRoutes from './routes/webhookRoutes.js';
 
 const app: Application = express();
 
@@ -34,11 +36,13 @@ app.use(cors({
   credentials: true,
 }));
 
-// Rate limiting
+// Rate limiting - more lenient in development
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Higher limit in development
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api/', limiter);
 
@@ -77,6 +81,8 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/staff', staffRoutes);
 app.use('/api/v1/forecasts', forecastingRoutes);
 app.use('/api/v1', commentRoutes); // Comments are nested under activities and projects
+app.use('/api/v1/audit', auditRoutes);
+app.use('/api/v1/webhooks', webhookRoutes);
 
 // Error handling
 app.use(notFoundHandler);

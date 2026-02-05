@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { scheduleApi } from '@services/api/scheduleApi';
+import { projectApi } from '@services/api/projectApi';
 
 // Types
 export interface Schedule {
@@ -49,6 +50,40 @@ export const fetchSchedules = createAsyncThunk<Schedule[], string>(
       return await scheduleApi.getSchedules(projectId);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch schedules';
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const fetchAllSchedules = createAsyncThunk<Schedule[]>(
+  'schedule/fetchAllSchedules',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Fetch all projects for the user's company
+      const projects = await projectApi.getProjects();
+      
+      // Fetch schedules for each project in parallel
+      const schedulePromises = projects.map(project => 
+        scheduleApi.getSchedules(project.id).catch(err => {
+          console.error(`Failed to fetch schedules for project ${project.id}:`, err);
+          return []; // Return empty array on error to not break the entire fetch
+        })
+      );
+      
+      const scheduleArrays = await Promise.all(schedulePromises);
+      
+      // Merge all schedules into a single array and remove duplicates
+      const allSchedules = scheduleArrays.flat();
+      const uniqueSchedules = Array.from(
+        new Map(allSchedules.map(schedule => [schedule.id, schedule])).values()
+      );
+      
+      // Sort by creation date (newest first)
+      return uniqueSchedules.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch all schedules';
       return rejectWithValue(errorMessage);
     }
   }
@@ -144,7 +179,7 @@ const scheduleSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all schedules
+      // Fetch schedules for a project
       .addCase(fetchSchedules.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -154,6 +189,19 @@ const scheduleSlice = createSlice({
         state.schedules = action.payload;
       })
       .addCase(fetchSchedules.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Fetch all schedules across all projects
+      .addCase(fetchAllSchedules.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllSchedules.fulfilled, (state, action) => {
+        state.loading = false;
+        state.schedules = action.payload;
+      })
+      .addCase(fetchAllSchedules.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

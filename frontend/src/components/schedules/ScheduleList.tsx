@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -12,13 +12,21 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Chip,
+  CircularProgress,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { useAppSelector } from '@store/index';
+import { useAppDispatch, useAppSelector } from '@store/index';
+import { fetchAllSchedules } from '@store/slices/scheduleSlice';
 
 const ScheduleList: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { schedules, loading } = useAppSelector((state) => state.schedule);
+
+  // Fetch all schedules on mount
+  useEffect(() => {
+    dispatch(fetchAllSchedules());
+  }, [dispatch]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -49,7 +57,9 @@ const ScheduleList: React.FC = () => {
       <Card>
         <CardContent>
           {loading ? (
-            <Typography>Loading schedules...</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
           ) : schedules.length === 0 ? (
             <Typography color="text.secondary">
               No schedules found. Create your first schedule to get started.
