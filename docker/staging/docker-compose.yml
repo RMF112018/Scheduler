@@ -1,0 +1,117 @@
+version: '3.8'
+
+# Staging Docker Compose Configuration
+# This file is for local staging testing before Azure deployment
+# For Azure, use App Service with container images
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+      target: production
+    container_name: scheduler-backend-staging
+    environment:
+      NODE_ENV: staging
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+      AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
+      # Module flags
+      ENABLE_COST_MODULE: ${ENABLE_COST_MODULE:-false}
+      ENABLE_DOCS_MODULE: ${ENABLE_DOCS_MODULE:-false}
+      ENABLE_RFI_MODULE: ${ENABLE_RFI_MODULE:-false}
+      # Webhook configuration
+      PARTNER_WEBHOOKS: ${PARTNER_WEBHOOKS:-false}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+    ports:
+      - '4000:4000'
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:4000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: frontend/Dockerfile
+      target: production
+    container_name: scheduler-frontend-staging
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:4000/api/v1}
+    ports:
+      - '80:80'
+    depends_on:
+      - backend
+    networks:
+      - staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: scheduler-postgres-staging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-scheduler}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-scheduler_staging}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    networks:
+      - staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-scheduler} -d ${POSTGRES_DB:-scheduler_staging}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: scheduler-redis-staging
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_staging_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - staging-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_staging_data:
+  redis_staging_data:
+
+networks:
+  staging-network:
+    driver: bridge
