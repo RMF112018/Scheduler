@@ -6,8 +6,12 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { store } from './store';
 import { ThemeProvider } from './theme';
+import { setupInsights } from './utils/insights';
 import './index.css';
 import './styles/animations.css';
+
+// Initialize Application Insights (must be before app renders)
+setupInsights();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
