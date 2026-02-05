@@ -8,7 +8,7 @@
  */
 
 import { Queue, Worker, Job } from 'bullmq';
-import { redis } from '../config/redis.js';
+import { redisForBullMQ } from '../config/redis.js';
 import { logger } from '../utils/logger.js';
 import type { BaseEvent, Event, EventType } from '../../../shared/src/events.js';
 import { auditService } from './auditService.js';
@@ -24,7 +24,7 @@ export class EventBus {
 
   constructor() {
     this.queue = new Queue<Event>('events', {
-      connection: redis,
+      connection: redisForBullMQ,
       defaultJobOptions: {
         attempts: 3,
         backoff: {
@@ -107,7 +107,7 @@ export class EventBus {
         });
       },
       {
-        connection: redis,
+        connection: redisForBullMQ,
         concurrency: 5, // Process up to 5 audit jobs concurrently
       }
     );
@@ -130,7 +130,7 @@ export class EventBus {
         await webhookService.deliverEvent(event);
       },
       {
-        connection: redis,
+        connection: redisForBullMQ,
         concurrency: 3, // Process webhooks with lower concurrency
       }
     );

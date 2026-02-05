@@ -100,7 +100,18 @@ const Layout: React.FC = () => {
             <ListItem
               button
               onClick={() => navigate('/settings')}
-              sx={{ mx: 1, borderRadius: 1 }}
+              selected={location.pathname === '/settings'}
+              sx={{
+                mx: 1,
+                borderRadius: 1,
+                '&.Mui-selected': {
+                  bgcolor: 'primary.light',
+                  color: 'primary.contrastText',
+                  '& .MuiListItemIcon-root': {
+                    color: 'primary.contrastText',
+                  },
+                },
+              }}
             >
               <ListItemIcon>
                 <SettingsIcon />

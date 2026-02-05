@@ -24,7 +24,7 @@ import {
   Business,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '@store/index';
-import { register, clearError } from '@store/slices/authSlice';
+import { register, clearError, clearAuth } from '@store/slices/authSlice';
 
 interface FormErrors {
   firstName?: string;
@@ -53,12 +53,17 @@ const Register: React.FC = () => {
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Redirect if already authenticated
+  // Clear any stale tokens when component mounts to prevent auto-login
   useEffect(() => {
-    if (isAuthenticated) {
+    dispatch(clearAuth());
+  }, [dispatch]);
+
+  // Redirect if already authenticated (after successful registration)
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
       navigate('/', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
   // Clear errors on unmount
   useEffect(() => {

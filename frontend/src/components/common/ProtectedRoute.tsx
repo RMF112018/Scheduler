@@ -7,14 +7,14 @@ import { getCurrentUser } from '@store/slices/authSlice';
 const ProtectedRoute: React.FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { isAuthenticated, loading, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, loading, user, token } = useAppSelector((state) => state.auth);
 
+  // Validate token on mount if token exists but we're not authenticated yet
   useEffect(() => {
-    // If authenticated but no user data, fetch it
-    if (isAuthenticated && !user && !loading) {
+    if (token && !isAuthenticated && !loading && !user) {
       dispatch(getCurrentUser());
     }
-  }, [isAuthenticated, user, loading, dispatch]);
+  }, [token, isAuthenticated, loading, user, dispatch]);
 
   // Show loading while checking auth
   if (loading) {

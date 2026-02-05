@@ -15,7 +15,7 @@ import {
   ExternalActivity,
   ExternalRelationship,
   DiffApproval,
-} from './importMappingService.js';
+} from '../modules/core/services/importMappingService.js';
 
 const prisma = new PrismaClient();
 

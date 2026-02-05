@@ -22,7 +22,7 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^5.10.2",
+    "@prisma/client": "^6.19.2",
     "applicationinsights": "^3.13.0",
     "bcryptjs": "^2.4.3",
     "bull": "^4.12.2",
@@ -72,7 +72,7 @@
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
-    "prisma": "^5.10.2",
+    "prisma": "^6.19.2",
     "supertest": "^6.3.4",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3",

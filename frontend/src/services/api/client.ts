@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { clearAuthTokens } from '@utils/auth';
 
 // Get API URL from environment or use default
 // @ts-expect-error - Vite provides import.meta.env at runtime
@@ -57,8 +58,7 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed - logout user
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+        clearAuthTokens();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

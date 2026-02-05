@@ -1,5 +1,8 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '@store/index';
+import { getCurrentUser } from '@store/slices/authSlice';
 
 // Layout components
 import Layout from '@components/common/Layout';
@@ -13,12 +16,26 @@ import LookaheadList from '@components/lookahead/LookaheadList';
 import LookaheadView from '@components/lookahead/LookaheadView';
 import Login from '@components/common/Login';
 import Register from '@components/common/Register';
+import Settings from '@components/settings/Settings';
 import NotFound from '@components/common/NotFound';
 
 // Auth wrapper
 import ProtectedRoute from '@components/common/ProtectedRoute';
 
 function App() {
+  const dispatch = useAppDispatch();
+  const location = useLocation();
+  const { token, isAuthenticated, loading } = useAppSelector((state) => state.auth);
+
+  // Validate token on app startup if token exists
+  // Skip validation on login/register pages to prevent auto-login issues
+  useEffect(() => {
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+    if (token && !isAuthenticated && !loading && !isAuthPage) {
+      dispatch(getCurrentUser());
+    }
+  }, [token, isAuthenticated, loading, location.pathname, dispatch]);
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Routes>
@@ -35,6 +52,7 @@ function App() {
             <Route path="/schedules/:scheduleId" element={<ScheduleDetail />} />
             <Route path="/lookahead" element={<LookaheadList />} />
             <Route path="/lookahead/:lookaheadId" element={<LookaheadView />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>
 

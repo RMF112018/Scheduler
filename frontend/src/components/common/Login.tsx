@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
@@ -13,7 +13,7 @@ import {
   Divider,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '@store/index';
-import { login, clearError } from '@store/slices/authSlice';
+import { login, clearError, clearAuth } from '@store/slices/authSlice';
 
 const Login: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -25,6 +25,11 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  // Clear any stale tokens when component mounts to ensure clean login state
+  useEffect(() => {
+    dispatch(clearAuth());
+  }, [dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

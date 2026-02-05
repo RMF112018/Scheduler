@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '@services/api/authApi';
+import { clearAuthTokens } from '@utils/auth';
 
 // Types
 interface User {
@@ -41,11 +42,12 @@ interface AuthResponse {
 }
 
 // Initial state
+// Note: isAuthenticated starts as false even if token exists - token must be validated first
 const initialState: AuthState = {
   user: null,
   token: localStorage.getItem('token'),
   refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: false, // Don't assume authenticated just because token exists
   loading: false,
   error: null,
 };
@@ -82,8 +84,7 @@ export const register = createAsyncThunk<AuthResponse, RegisterCredentials>(
 );
 
 export const logout = createAsyncThunk('auth/logout', async () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('refreshToken');
+  clearAuthTokens();
 });
 
 export const getCurrentUser = createAsyncThunk<User>(
@@ -110,6 +111,14 @@ const authSlice = createSlice({
     setToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
       state.isAuthenticated = true;
+    },
+    clearAuth: (state) => {
+      clearAuthTokens();
+      state.user = null;
+      state.token = null;
+      state.refreshToken = null;
+      state.isAuthenticated = false;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -160,15 +169,19 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
+        state.isAuthenticated = true; // Token is valid, user authenticated
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
         state.isAuthenticated = false;
         state.token = null;
+        state.refreshToken = null;
+        // Clear invalid tokens from localStorage
+        clearAuthTokens();
       });
   },
 });
 
-export const { clearError, setToken } = authSlice.actions;
+export const { clearError, setToken, clearAuth } = authSlice.actions;
 export default authSlice.reducer;
