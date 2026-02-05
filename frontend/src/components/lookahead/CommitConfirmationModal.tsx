@@ -43,6 +43,7 @@ import {
 } from '@mui/icons-material';
 import type { Conflict, LookaheadActivity } from '@store/slices/lookaheadSlice';
 import type { ValidationIssue } from '@shared/index';
+import { CommitSuccessAnimation } from '@components/animations';
 
 // Types for the modal
 interface CommitConfirmationModalProps {
@@ -56,6 +57,10 @@ interface CommitConfirmationModalProps {
   validationIssues?: ValidationIssue[];
   isLoading?: boolean;
   onOpenIssuesPanel?: () => void;
+  /** Show success animation after commit (Phase 8) */
+  showSuccessAnimation?: boolean;
+  /** Callback when success animation completes */
+  onSuccessAnimationComplete?: () => void;
 }
 
 interface AttachmentUpload {
@@ -110,6 +115,8 @@ const CommitConfirmationModal: React.FC<CommitConfirmationModalProps> = ({
   validationIssues = [],
   isLoading = false,
   onOpenIssuesPanel,
+  showSuccessAnimation = false,
+  onSuccessAnimationComplete,
 }) => {
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
@@ -706,6 +713,14 @@ const CommitConfirmationModal: React.FC<CommitConfirmationModalProps> = ({
           {isLoading ? 'Committing...' : 'Commit Changes'}
         </Button>
       </DialogActions>
+
+      {/* Success Animation Overlay (Phase 8) */}
+      <CommitSuccessAnimation
+        show={showSuccessAnimation}
+        onComplete={onSuccessAnimationComplete}
+        message="Committed Successfully"
+        autoDismissDelay={1500}
+      />
     </Dialog>
   );
 };

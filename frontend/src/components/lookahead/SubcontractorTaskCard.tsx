@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -9,7 +9,6 @@ import {
   Chip,
   IconButton,
   Collapse,
-  LinearProgress,
   Tooltip,
   useTheme,
   useMediaQuery,
@@ -23,7 +22,6 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
   Timer as TimerIcon,
@@ -34,6 +32,7 @@ import {
   Done as DoneIcon,
 } from '@mui/icons-material';
 import type { LookaheadActivity } from '@store/slices/lookaheadSlice';
+import { ProgressRing } from '@components/animations';
 
 // Props interface
 interface SubcontractorTaskCardProps {
@@ -45,6 +44,8 @@ interface SubcontractorTaskCardProps {
   isLoading?: boolean;
   showConflicts?: boolean;
   compact?: boolean;
+  /** Enable one-tap status toggle (Phase 8 enhancement) */
+  oneTapEnabled?: boolean;
 }
 
 // Status colors
@@ -71,23 +72,6 @@ const getStatusColor = (status: 'should_do' | 'will_do' | null, theme: any) => {
   }
 };
 
-// Progress color based on completion for Chip component
-const getChipProgressColor = (percentComplete: number): 'success' | 'info' | 'primary' | 'warning' | 'default' => {
-  if (percentComplete >= 100) return 'success';
-  if (percentComplete >= 75) return 'info';
-  if (percentComplete >= 50) return 'primary';
-  if (percentComplete >= 25) return 'warning';
-  return 'default';
-};
-
-// Progress color based on completion for LinearProgress component
-const getLinearProgressColor = (percentComplete: number): 'success' | 'info' | 'primary' | 'warning' | 'inherit' => {
-  if (percentComplete >= 100) return 'success';
-  if (percentComplete >= 75) return 'info';
-  if (percentComplete >= 50) return 'primary';
-  if (percentComplete >= 25) return 'warning';
-  return 'inherit';
-};
 
 // Format date for display
 const formatDate = (dateString: string) => {
@@ -118,11 +102,13 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
   isLoading = false,
   showConflicts = true,
   compact = false,
+  oneTapEnabled = true,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [expanded, setExpanded] = useState(false);
+  const [tapAnimation, setTapAnimation] = useState(false);
 
   const statusColors = getStatusColor(activity.plannerStatus, theme);
   const daysUntilStart = getDaysFromNow(activity.startDate);
@@ -146,6 +132,23 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
     }
   };
 
+  // One-tap status toggle (cycles: null -> should_do -> will_do -> will_do)
+  const handleOneTapToggle = useCallback(() => {
+    if (isLoading || activity.isCommitted || !oneTapEnabled) return;
+    
+    // Trigger tap animation
+    setTapAnimation(true);
+    setTimeout(() => setTapAnimation(false), 150);
+    
+    // Cycle through statuses
+    if (!activity.plannerStatus || activity.plannerStatus === null) {
+      onStatusChange(activity.id, 'should_do');
+    } else if (activity.plannerStatus === 'should_do') {
+      onStatusChange(activity.id, 'will_do');
+    }
+    // If already 'will_do', do nothing (committed state)
+  }, [isLoading, activity.isCommitted, activity.plannerStatus, activity.id, onStatusChange, oneTapEnabled]);
+
   // Render conflict badges
   const renderConflictBadge = () => {
     if (!activity.hasConflict || !showConflicts) return null;
@@ -166,10 +169,11 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
     );
   };
 
-  // Compact mobile view
+  // Compact mobile view with one-tap and progress ring
   if (compact && isMobile) {
     return (
       <Card
+        onClick={oneTapEnabled ? handleOneTapToggle : undefined}
         sx={{
           mb: 1,
           border: '2px solid',
@@ -177,85 +181,109 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
           bgcolor: statusColors.bg,
           borderRadius: 2,
           overflow: 'hidden',
+          cursor: oneTapEnabled && !activity.isCommitted ? 'pointer' : 'default',
+          transition: 'all 200ms ease-out',
+          transform: tapAnimation ? 'scale(0.98)' : 'scale(1)',
+          '&:active': oneTapEnabled && !activity.isCommitted ? {
+            transform: 'scale(0.97)',
+          } : {},
         }}
       >
         <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-          {/* Header row */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              sx={{
-                flex: 1,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {activity.name}
-            </Typography>
+          {/* Header row with progress ring */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+            {/* Progress Ring */}
+            <ProgressRing
+              progress={activity.percentComplete}
+              size={40}
+              strokeWidth={3}
+              textVariant="caption"
+            />
+            
+            {/* Title and status */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                sx={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {activity.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {formatDate(activity.startDate)} • {activity.duration}d
+              </Typography>
+            </Box>
+            
+            {/* Conflict badge */}
             {renderConflictBadge()}
+            
+            {/* Status indicator */}
+            {activity.plannerStatus === 'will_do' && (
+              <CheckIcon color="success" fontSize="small" />
+            )}
+            {activity.plannerStatus === 'should_do' && (
+              <ScheduleIcon color="warning" fontSize="small" />
+            )}
           </Box>
 
-          {/* Quick info row */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
-            <Chip
-              icon={<CalendarIcon />}
-              label={formatDate(activity.startDate)}
-              size="small"
-              variant="outlined"
-              sx={{ height: 24, fontSize: '0.7rem' }}
-            />
-            <Chip
-              icon={<TimerIcon />}
-              label={`${activity.duration}d`}
-              size="small"
-              variant="outlined"
-              sx={{ height: 24, fontSize: '0.7rem' }}
-            />
-            <Chip
-              label={`${activity.percentComplete}%`}
-              size="small"
-              color={getChipProgressColor(activity.percentComplete)}
-              sx={{ height: 24, fontSize: '0.7rem' }}
-            />
-          </Box>
-
-          {/* Action buttons - full width on mobile */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant={activity.plannerStatus === 'should_do' ? 'contained' : 'outlined'}
-              color="warning"
-              size="small"
-              onClick={handleShouldDo}
-              disabled={isLoading}
-              startIcon={<ScheduleIcon />}
-              sx={{
-                flex: 1,
-                py: 1,
-                fontSize: '0.75rem',
-                fontWeight: 600,
+          {/* One-tap hint or action buttons */}
+          {oneTapEnabled && !activity.isCommitted ? (
+            <Typography 
+              variant="caption" 
+              color="text.secondary"
+              sx={{ 
+                display: 'block', 
+                textAlign: 'center',
+                opacity: 0.7,
               }}
             >
-              Should Do
-            </Button>
-            <Button
-              variant={activity.plannerStatus === 'will_do' ? 'contained' : 'outlined'}
-              color="success"
-              size="small"
-              onClick={handleWillDo}
-              disabled={isLoading}
-              startIcon={<CheckIcon />}
-              sx={{
-                flex: 1,
-                py: 1,
-                fontSize: '0.75rem',
-                fontWeight: 600,
-              }}
-            >
-              Will Do
-            </Button>
-          </Box>
+              {!activity.plannerStatus 
+                ? 'Tap to mark "Should Do"' 
+                : activity.plannerStatus === 'should_do' 
+                  ? 'Tap to commit "Will Do"'
+                  : '✓ Committed'}
+            </Typography>
+          ) : (
+            /* Fallback action buttons if one-tap disabled */
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant={activity.plannerStatus === 'should_do' ? 'contained' : 'outlined'}
+                color="warning"
+                size="small"
+                onClick={(e) => { e.stopPropagation(); handleShouldDo(); }}
+                disabled={isLoading || activity.isCommitted}
+                startIcon={<ScheduleIcon />}
+                sx={{
+                  flex: 1,
+                  py: 1,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                Should Do
+              </Button>
+              <Button
+                variant={activity.plannerStatus === 'will_do' ? 'contained' : 'outlined'}
+                color="success"
+                size="small"
+                onClick={(e) => { e.stopPropagation(); handleWillDo(); }}
+                disabled={isLoading || activity.isCommitted}
+                startIcon={<CheckIcon />}
+                sx={{
+                  flex: 1,
+                  py: 1,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                Will Do
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
     );
@@ -271,24 +299,27 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
         bgcolor: activity.hasConflict ? alpha(theme.palette.error.main, 0.05) : statusColors.bg,
         borderRadius: 3,
         overflow: 'hidden',
-        transition: 'all 0.2s ease',
+        transition: 'all 200ms ease-out',
+        transform: tapAnimation ? 'scale(0.99)' : 'scale(1)',
         '&:hover': {
           boxShadow: theme.shadows[4],
           transform: 'translateY(-2px)',
         },
       }}
     >
-      {/* Progress bar at top */}
-      <LinearProgress
-        variant="determinate"
-        value={activity.percentComplete}
-        color={getLinearProgressColor(activity.percentComplete)}
-        sx={{ height: 4 }}
-      />
 
       <CardContent sx={{ p: isMobile ? 2 : 2.5 }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
+        {/* Header with Progress Ring */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+          {/* Progress Ring */}
+          <ProgressRing
+            progress={activity.percentComplete}
+            size={isMobile ? 48 : 56}
+            strokeWidth={4}
+            textVariant={isMobile ? 'caption' : 'body2'}
+          />
+          
+          {/* Title and badges */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
               <Typography
@@ -335,9 +366,13 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
           <IconButton
             size="small"
             onClick={() => setExpanded(!expanded)}
-            sx={{ ml: 1 }}
+            sx={{ 
+              ml: 'auto',
+              transition: 'transform 200ms ease-out',
+              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
           >
-            {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            <ExpandMoreIcon />
           </IconButton>
         </Box>
 
@@ -388,16 +423,6 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <TimerIcon fontSize="small" color="action" />
             <Typography variant="body2">{activity.duration} days</Typography>
-          </Box>
-
-          {/* Progress */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Chip
-              label={`${activity.percentComplete}% complete`}
-              size="small"
-              color={getChipProgressColor(activity.percentComplete)}
-              variant="filled"
-            />
           </Box>
         </Box>
 
