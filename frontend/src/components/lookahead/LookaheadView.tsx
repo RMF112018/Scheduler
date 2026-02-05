@@ -9,11 +9,13 @@ import {
   Alert,
   Button,
   Drawer,
+  Chip,
 } from '@mui/material';
 import {
   CalendarMonth as CalendarIcon,
   List as ListIcon,
   Commit as CommitIcon,
+  CloudOff as OfflineIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '@store/index';
 import {
@@ -26,21 +28,32 @@ import CalendarView from './CalendarView';
 import TaskListView from './TaskListView';
 import ConflictAlertPanel from './ConflictAlertPanel';
 import CommitConfirmationModal from './CommitConfirmationModal';
+import { OfflineSyncIndicator, OfflineBanner, ConflictResolutionModal } from '@components/offline';
+import { useOfflineSync, useOfflineLookahead } from '@hooks/index';
 
 const LookaheadView: React.FC = () => {
   const { lookaheadId } = useParams<{ lookaheadId: string }>();
   const dispatch = useAppDispatch();
   const { current, loading, error, viewMode } = useAppSelector((state) => state.lookahead);
 
+  // Offline sync hooks
+  const { isOnline } = useOfflineSync();
+  const {
+    lookahead: offlineLookahead,
+    isOfflineData,
+    markTaskStatus: offlineMarkStatus,
+  } = useOfflineLookahead(lookaheadId);
+
   // Local state
   const [commitModalOpen, setCommitModalOpen] = useState(false);
   const [issuesPanelOpen, setIssuesPanelOpen] = useState(false);
+  const [conflictModalOpen, setConflictModalOpen] = useState(false);
 
   useEffect(() => {
-    if (lookaheadId) {
+    if (lookaheadId && isOnline) {
       dispatch(fetchLookahead(lookaheadId));
     }
-  }, [lookaheadId, dispatch]);
+  }, [lookaheadId, dispatch, isOnline]);
 
   // Refresh conflicts when lookahead changes
   useEffect(() => {
@@ -58,17 +71,26 @@ const LookaheadView: React.FC = () => {
     }
   };
 
-  const handleStatusChange = (activityId: string, status: 'should_do' | 'will_do') => {
+  const handleStatusChange = async (activityId: string, status: 'should_do' | 'will_do') => {
     if (current?.id) {
-      dispatch(markTaskStatus({ lookaheadId: current.id, activityId, status }));
+      if (isOnline) {
+        dispatch(markTaskStatus({ lookaheadId: current.id, activityId, status }));
+      } else {
+        // Use offline sync service when offline
+        await offlineMarkStatus(activityId, status);
+      }
     }
   };
 
-  const handleBulkStatusChange = (activityIds: string[], status: 'should_do' | 'will_do') => {
+  const handleBulkStatusChange = async (activityIds: string[], status: 'should_do' | 'will_do') => {
     if (current?.id) {
-      activityIds.forEach((activityId) => {
-        dispatch(markTaskStatus({ lookaheadId: current.id, activityId, status }));
-      });
+      for (const activityId of activityIds) {
+        if (isOnline) {
+          dispatch(markTaskStatus({ lookaheadId: current.id, activityId, status }));
+        } else {
+          await offlineMarkStatus(activityId, status);
+        }
+      }
     }
   };
 
@@ -122,8 +144,14 @@ const LookaheadView: React.FC = () => {
     (a) => a.plannerStatus === 'will_do' && !a.isCommitted
   ).length;
 
+  // Use offline data when offline, otherwise use Redux state
+  const activeLookahead = !isOnline && offlineLookahead ? offlineLookahead : current;
+
   return (
     <Box>
+      {/* Offline Banner */}
+      <OfflineBanner position="top" />
+
       {/* Header */}
       <Box
         sx={{
@@ -136,7 +164,18 @@ const LookaheadView: React.FC = () => {
         }}
       >
         <Box>
-          <Typography variant="h4">{current.name}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h4">{activeLookahead?.name || current?.name}</Typography>
+            {isOfflineData && (
+              <Chip
+                icon={<OfflineIcon />}
+                label="Offline Data"
+                size="small"
+                color="warning"
+                variant="outlined"
+              />
+            )}
+          </Box>
           <Typography variant="body2" color="text.secondary">
             {new Date(current.startDate).toLocaleDateString()} -{' '}
             {new Date(current.endDate).toLocaleDateString()} |{' '}
@@ -145,6 +184,12 @@ const LookaheadView: React.FC = () => {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {/* Offline Sync Indicator */}
+          <OfflineSyncIndicator
+            variant="chip"
+            onConflictsClick={() => setConflictModalOpen(true)}
+          />
+
           <ToggleButtonGroup
             value={viewMode}
             exclusive
@@ -252,6 +297,18 @@ const LookaheadView: React.FC = () => {
           />
         </Box>
       </Drawer>
+
+      {/* Conflict Resolution Modal */}
+      <ConflictResolutionModal
+        open={conflictModalOpen}
+        onClose={() => setConflictModalOpen(false)}
+        onResolved={() => {
+          // Refresh data after conflicts resolved
+          if (lookaheadId && isOnline) {
+            dispatch(fetchLookahead(lookaheadId));
+          }
+        }}
+      />
     </Box>
   );
 };

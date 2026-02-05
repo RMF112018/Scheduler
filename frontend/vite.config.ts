@@ -17,6 +17,9 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared/src'),
     },
   },
+  optimizeDeps: {
+    include: ['date-fns'],
+  },
   server: {
     port: 3000,
     proxy: {
