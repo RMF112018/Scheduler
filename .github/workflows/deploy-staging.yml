@@ -7,8 +7,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ${{ secrets.DOCKER_REGISTRY }}/scheduler-backend
-  FRONTEND_IMAGE: ${{ secrets.DOCKER_REGISTRY }}/scheduler-frontend
   STAGING_TAG: staging
 
 jobs:
