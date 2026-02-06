@@ -9,10 +9,11 @@ import { defineConfig, devices } from '@playwright/test';
  * - Tier 3: Security & Performance - Run on Chromium only
  * 
  * Tests run against the full-stack application (frontend + backend)
- * Assumes backend runs on port 3001 and frontend on port 5173 (Vite default)
+ * Frontend runs on port 3000 (Vite config), backend runs on port 4000 (default)
  */
 export default defineConfig({
   testDir: './tests/e2e',
+  outputDir: 'test-results', // Explicitly set test results directory
   fullyParallel: false, // Run tests sequentially to avoid database conflicts
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -25,13 +26,13 @@ export default defineConfig({
     toMatchSnapshot: { threshold: 0.2 },
   },
   reporter: [
-    ['html', { outputFolder: 'test-results/html-report' }],
+    ['html', { outputFolder: 'playwright-report' }], // Separate folder to avoid clash with test-results
     ['list'],
     ['json', { outputFile: 'test-results/results.json' }],
     ['junit', { outputFile: 'test-results/junit.xml' }],
   ],
   use: {
-    baseURL: process.env.FRONTEND_URL || 'http://localhost:5173',
+    baseURL: process.env.FRONTEND_URL || 'http://localhost:3000', // Match Vite config port
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -73,9 +74,9 @@ export default defineConfig({
   webServer: [
     {
       command: 'cd backend && pnpm dev',
-      port: 3001,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
+      port: 4000, // Match backend default port
+      reuseExistingServer: !process.env.CI, // Use existing server locally, start fresh in CI
+      timeout: 180000, // 3 minutes for CI cold starts
       env: {
         NODE_ENV: 'test',
         DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgresql://user:password@localhost:5432/scheduler_test',
@@ -85,11 +86,11 @@ export default defineConfig({
     },
     {
       command: 'cd frontend && pnpm dev',
-      port: 5173,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
+      port: 3000, // Match Vite config port
+      reuseExistingServer: !process.env.CI, // Use existing server locally, start fresh in CI
+      timeout: 180000, // 3 minutes for CI cold starts
       env: {
-        VITE_API_URL: 'http://localhost:3001/api/v1',
+        VITE_API_URL: 'http://localhost:4000/api/v1', // Match backend port
       },
     },
   ],
