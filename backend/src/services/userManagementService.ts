@@ -238,83 +238,90 @@ export class UserManagementService {
    * Search users with filters
    */
   async searchUsers(filters: UserSearchFilters): Promise<PaginatedUsers> {
-    const page = filters.page || 1;
-    const limit = filters.limit || 20;
-    const skip = (page - 1) * limit;
+    try {
+      const page = filters.page || 1;
+      const limit = filters.limit || 20;
+      const skip = (page - 1) * limit;
 
-    const where: any = {
-      companyId: filters.companyId,
-    };
-
-    if (filters.email) {
-      where.email = { contains: filters.email, mode: 'insensitive' };
-    }
-    if (filters.firstName) {
-      where.firstName = { contains: filters.firstName, mode: 'insensitive' };
-    }
-    if (filters.lastName) {
-      where.lastName = { contains: filters.lastName, mode: 'insensitive' };
-    }
-
-    // Filter by role
-    if (filters.roleId) {
-      where.userRoles = {
-        some: {
-          roleId: filters.roleId,
-          ...(filters.projectId ? { projectId: filters.projectId } : {}),
-        },
+      const where: any = {
+        companyId: filters.companyId,
       };
-    }
 
-    // Filter by project
-    if (filters.projectId && !filters.roleId) {
-      where.userRoles = {
-        some: {
-          projectId: filters.projectId,
-        },
-      };
-    }
+      if (filters.email) {
+        where.email = { contains: filters.email, mode: 'insensitive' };
+      }
+      if (filters.firstName) {
+        where.firstName = { contains: filters.firstName, mode: 'insensitive' };
+      }
+      if (filters.lastName) {
+        where.lastName = { contains: filters.lastName, mode: 'insensitive' };
+      }
 
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        skip,
-        take: limit,
-        include: {
-          userRoles: {
-            include: {
-              role: true,
-              project: true,
+      // Filter by role
+      if (filters.roleId) {
+        where.userRoles = {
+          some: {
+            roleId: filters.roleId,
+            ...(filters.projectId ? { projectId: filters.projectId } : {}),
+          },
+        };
+      }
+
+      // Filter by project
+      if (filters.projectId && !filters.roleId) {
+        where.userRoles = {
+          some: {
+            projectId: filters.projectId,
+          },
+        };
+      }
+
+      const [users, total] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          skip,
+          take: limit,
+          include: {
+            userRoles: {
+              include: {
+                role: true,
+                project: true,
+              },
             },
           },
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.user.count({ where }),
-    ]);
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.user.count({ where }),
+      ]);
 
-    return {
-      users: users.map((u) => ({
-        id: u.id,
-        email: u.email,
-        firstName: u.firstName,
-        lastName: u.lastName,
-        companyId: u.companyId,
-        roles: u.userRoles.map((ur) => ({
-          id: ur.role.id,
-          name: ur.role.name,
-          description: ur.role.description,
-          projectId: ur.projectId,
-          projectName: ur.project?.name,
+      return {
+        users: users.map((u) => ({
+          id: u.id,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          companyId: u.companyId,
+          roles: (u.userRoles || [])
+            .filter((ur) => ur.role) // Filter out any userRoles with null role
+            .map((ur) => ({
+              id: ur.role!.id,
+              name: ur.role!.name,
+              description: ur.role!.description || null,
+              projectId: ur.projectId || null,
+              projectName: ur.project?.name || null,
+            })),
+          createdAt: u.createdAt,
+          updatedAt: u.updatedAt,
         })),
-        createdAt: u.createdAt,
-        updatedAt: u.updatedAt,
-      })),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      logger.error('Error in searchUsers:', error);
+      throw error;
+    }
   }
 
   /**
