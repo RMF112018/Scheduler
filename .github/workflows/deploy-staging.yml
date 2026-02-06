@@ -63,7 +63,6 @@ jobs:
     needs: build-and-push
     environment:
       name: staging
-      url: https://${{ secrets.AZURE_BACKEND_APP_NAME }}.azurewebsites.net
     
     steps:
       - name: Checkout code
@@ -97,7 +96,6 @@ jobs:
     needs: build-and-push
     environment:
       name: staging
-      url: https://${{ secrets.AZURE_FRONTEND_APP_NAME }}.azurewebsites.net
     
     steps:
       - name: Checkout code
