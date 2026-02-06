@@ -1,6 +1,6 @@
 ---
 name: Construction Scheduling Application - Consolidated Development Plan
-overview: Comprehensive development record and roadmap for the web-based construction scheduling application, consolidating all previous plans and documenting completed work through Phase 9 (Core Stabilization & ERM Foundation), with Phase 10 (Beta Readiness & Controlled Launch) and Phase 11 (Advanced User Management & Role-Based Permissions) as post-Phase 9 phases.
+overview: Comprehensive development record and roadmap for the web-based construction scheduling application, consolidating all previous plans and documenting completed work through Phase 9 (Core Stabilization & ERM Foundation), with Phase 10 (Beta Readiness & Controlled Launch), Phase 11 (Advanced User Management & Procore-Style RBAC), Phase 12 (Flow Editor for Visual Lookahead Planning), and Phase 13 (Comprehensive End-to-End Test Suite) as post-Phase 9 phases.
 todos:
   # Phase 3 - COMPLETE
   - id: phase3-retained-logic
@@ -156,6 +156,18 @@ todos:
   - id: phase10-e2e-tests
     content: Create comprehensive E2E test suite with Playwright covering critical paths (offline sync → merge, commit → approval, variance exports)
     status: pending
+  - id: phase10-cpm-sanity-check
+    content: Implement P6 Logic Verification test utility that verifies Retained Logic CPM finish dates exactly match benchmark P6 XER export to ensure user trust in scheduling engine
+    status: pending
+  - id: phase10-guid-persistence-round-trip
+    content: Automate GUID Persistence Round-Trip test: Import XER → Create Field Edits → Export XER → Re-import Updated XER. Verify field notes, photos, and assignments remain "glued" to correct tasks via internal_guid
+    status: pending
+  - id: phase10-field-ux-audit
+    content: Direct Sunlight Visibility & Touch Target Audit - Verify color-coded status indicators (Green/Yellow/Red) are high-contrast for high-glare outdoor use and SubcontractorTaskCard buttons optimized for field use
+    status: pending
+  - id: phase10-new-user-landing
+    content: Implement "Pending Assignment" landing screen for New User role to prevent users from bouncing before Admin assigns them to a project
+    status: pending
   - id: phase10-staging-deployment
     content: Deploy staging environment to Azure (App Service for backend/frontend, PostgreSQL database, storage for attachments)
     status: pending
@@ -172,18 +184,18 @@ todos:
     content: Execute controlled rollout (start with 1-2 projects, expand based on feedback)
     status: pending
 
-  # Phase 11 - Advanced User Management & Role-Based Permissions - PENDING
+  # Phase 11 - Advanced User Management & Procore-Style RBAC - PENDING
   - id: phase11-database-schema
-    content: Extend Prisma schema with Role, Permission, UserRole, ProjectPermission models and relationships
+    content: Extend Prisma schema with Role, Permission, UserRole, ProjectPermission, CompanyPermission models and relationships
     status: pending
   - id: phase11-permission-service
-    content: Create PermissionService with granular permission checking, role assignment, and project-scoped access control
+    content: Create PermissionService with Procore-style hierarchical permission checking (None, Read Only, Standard, Admin), role assignment, and project-scoped access control
     status: pending
   - id: phase11-user-management-service
     content: Create UserManagementService for admin-only user CRUD, bulk import, role assignment, and permission customization
     status: pending
   - id: phase11-admin-ui
-    content: Build admin-only user management UI with search, filters, role dropdown, granular permission editor (checkbox matrix/tree view)
+    content: Build admin-only user management UI with search, filters, role dropdown, granular permission editor (checkbox matrix/tree view with Procore-style levels)
     status: pending
   - id: phase11-project-assignment
     content: Implement project assignment system linking users to specific projects with scoped permissions
@@ -195,59 +207,118 @@ todos:
     content: Integrate audit logging on all user/role/permission changes via event bus
     status: pending
   - id: phase11-rbac-middleware
-    content: Enhance existing RBAC middleware to enforce least-privilege, project-scoped permissions, and role-based access
+    content: Enhance existing RBAC middleware to enforce least-privilege, project-scoped permissions, and Procore-style hierarchical access
     status: pending
   - id: phase11-new-user-default
-    content: Implement default "New User" role assignment for all new accounts (self-registration, admin invite, import)
+    content: Implement default "New User" role assignment for all new accounts (self-registration, admin invite, import) with "Pending Assignment" landing screen
     status: pending
   - id: phase11-tests
     content: Write unit/integration/E2E tests covering role escalation, least-privilege enforcement, admin flows, and permission boundaries
     status: pending
   - id: phase11-documentation
-    content: Update README with role definitions, permission model, admin guide, and user management workflows
+    content: Update README with role definitions, Procore-style permission model, admin guide, and user management workflows
     status: pending
 
-  # Phase 12 - Comprehensive End-to-End Test Suite - PENDING
-  - id: phase12-playwright-config
+  # Phase 12 - Flow Editor for Visual Lookahead Planning - PENDING
+  - id: phase12-flow-editor-component
+    content: Create FlowEditor component with toggle entry points from standard lookahead view (calendar/list)
+    status: pending
+  - id: phase12-quick-choice-modal
+    content: Build quick-choice modal for creation with filters (date range, WBS/phase/section, location/zone, task status, custom fields/tags) and template selection
+    status: pending
+  - id: phase12-react-flow-canvas
+    content: Implement canvas using React Flow (@xyflow/react) with custom nodes for card/compact view, connections, auto-layout, and mini-map
+    status: pending
+  - id: phase12-drag-drop-relationships
+    content: Implement free drag from card/node edge with temporary line snapping to nearest valid target and relationship type selection on release
+    status: pending
+  - id: phase12-hybrid-property-editing
+    content: Create hybrid property editing (basic inline: duration, status; advanced in side panel: resources, constraints, custom fields)
+    status: pending
+  - id: phase12-auto-layout-algorithms
+    content: Implement auto-layout with multiple algorithms (start date, resource swimlane, phase grouping, critical path)
+    status: pending
+  - id: phase12-zoom-pan-minimap
+    content: Add smooth zoom/pan controls and mini-map overview
+    status: pending
+  - id: phase12-search-filter-bar
+    content: Create full-featured live search/filter bar with match highlighting and dimming of non-matches
+    status: pending
+  - id: phase12-critical-path-highlighting
+    content: Implement real-time critical path highlighting with optional toggle (default on)
+    status: pending
+  - id: phase12-resource-constraint-feedback
+    content: Add hybrid resource/constraint feedback with real-time highlights/warnings and optional strict mode toggle (default off)
+    status: pending
+  - id: phase12-undo-redo
+    content: Implement limited undo/redo stack (20-50 actions)
+    status: pending
+  - id: phase12-auto-draft-saving
+    content: Create hybrid saving system (auto-draft periodically/on exit, explicit Apply Changes confirmation before visible in standard view)
+    status: pending
+  - id: phase12-template-library
+    content: Build template library with curated and admin-extensible company-wide templates, preview thumbnails, and categories
+    status: pending
+  - id: phase12-mobile-touch-support
+    content: Add functional mobile/touch support (pinch zoom, tap-to-select, drag works) - desktop-first, no special mobile UI in initial release
+    status: pending
+  - id: phase12-lookahead-integration
+    content: Integrate Flow Editor with existing lookahead data (pull/push via service, preserve constraints and conflict detection)
+    status: pending
+  - id: phase12-commit-workflow
+    content: Ensure post-apply changes require manual commit trigger (changes saved but not auto-committed)
+    status: pending
+  - id: phase12-performance-validation
+    content: Validate performance for 100+ task lookaheads with optimization
+    status: pending
+  - id: phase12-flow-editor-tests
+    content: Write comprehensive tests (unit for canvas logic, integration for apply/commit flow, E2E for full creation/enhancement cycles)
+    status: pending
+  - id: phase12-flow-editor-documentation
+    content: Update README with Flow Editor guide, screenshots, and usage examples
+    status: pending
+
+  # Phase 13 - Comprehensive End-to-End Test Suite - PENDING
+  - id: phase13-playwright-config
     content: Expand Playwright configuration for full coverage (headed/headless modes, multiple browsers, mobile emulation, staging URL support)
     status: pending
-  - id: phase12-page-objects
+  - id: phase13-page-objects
     content: Create comprehensive Page Object Models for all major screens (Login, Dashboard, ScheduleDetail, LookaheadView, ApprovalQueue, CommitConfirmationModal, OfflineSyncIndicator, etc.)
     status: pending
-  - id: phase12-auth-rbac-tests
+  - id: phase13-auth-rbac-tests
     content: Write E2E tests for authentication & RBAC (role-based access violations, least-privilege enforcement, permission boundaries)
     status: pending
-  - id: phase12-master-schedule-tests
+  - id: phase13-master-schedule-tests
     content: Write E2E tests for master schedule flows (XER import, edit activities, retained logic recalc, out-of-sequence resolution with reason/attachment)
     status: pending
-  - id: phase12-lookahead-tests
+  - id: phase13-lookahead-tests
     content: Write E2E tests for lookahead full cycle (pull, edit, conflict detection, commit with modal confirmation + attachments + filtered review, approval with partial attachment gating, merge + evidence promotion)
     status: pending
-  - id: phase12-offline-sync-tests
+  - id: phase13-offline-sync-tests
     content: Write E2E tests for offline sync (disconnect, edit/commit, reconnect, sync queue, conflict resolution modal)
     status: pending
-  - id: phase12-export-tests
+  - id: phase13-export-tests
     content: Write E2E tests for exports (variance view with all summary options, critical path highlighting)
     status: pending
-  - id: phase12-realtime-tests
+  - id: phase13-realtime-tests
     content: Write E2E tests for real-time notifications (event trigger → in-app toast + email)
     status: pending
-  - id: phase12-usability-tests
+  - id: phase13-usability-tests
     content: Write E2E tests for usability polish (role landings, subtle feedback, tooltips, mobile responsiveness)
     status: pending
-  - id: phase12-performance-tests
+  - id: phase13-performance-tests
     content: Write E2E performance/smoke tests (large schedule load, no crashes, response time validation)
     status: pending
-  - id: phase12-visual-regression
+  - id: phase13-visual-regression
     content: Implement visual regression testing (screenshot comparisons against baselines using Playwright's built-in or Percy)
     status: pending
-  - id: phase12-test-data-factory
+  - id: phase13-test-data-factory
     content: Implement test data factory/fixtures for reproducible states (seeded projects, schedules, users)
     status: pending
-  - id: phase12-ci-integration
+  - id: phase13-ci-integration
     content: Add CI integration (run full E2E suite on push to main or staging branch, with artifact reports)
     status: pending
-  - id: phase12-test-documentation
+  - id: phase13-test-documentation
     content: Document test suite usage, maintenance, coverage report, and run commands
     status: pending
 ---
@@ -259,7 +330,7 @@ todos:
 This document consolidates all development planning for the web-based construction scheduling application. The application is designed to be more intuitive than Primavera P6 while providing superior functionality to Microsoft Project, with a focus on:
 
 - **Master Schedule Management** with XER import/export and persistent GUID mapping
-- **Lookahead Workflows** using Last Planner methodology ("Should Do" / "Will Do")
+- **Lookahead Workflows** using Last Planner methodology ("Should Do" / "Will Do") with visual Flow Editor for intuitive planning
 - **Offline Synchronization** for field crews (lookahead schedules only)
 - **Executive Dashboards** with workflow-gated data integrity
 - **Resource/Staff Planning** integration
@@ -281,23 +352,28 @@ This document consolidates all development planning for the web-based constructi
 - **Phase 8:** ✅ COMPLETE (User Engagement & Usability Polish)
 - **Phase 9:** ✅ COMPLETE (Core Stabilization & ERM Foundation)
 - **Phase 10:** ⏳ PENDING (Beta Readiness & Controlled Launch)
-- **Phase 11:** ⏳ PENDING (Advanced User Management & Role-Based Permissions)
-- **Phase 12:** ⏳ PENDING (Comprehensive End-to-End Test Suite)
+- **Phase 11:** ⏳ PENDING (Advanced User Management & Procore-Style RBAC)
+- **Phase 12:** ⏳ PENDING (Flow Editor for Visual Lookahead Planning)
+- **Phase 13:** ⏳ PENDING (Comprehensive End-to-End Test Suite)
 
 **Phase 9 Overview:**
 Phase 9 focuses on hardening the MVP for production/beta use while making deliberate architectural modifications to prepare the system as a central data backbone for construction operations. The goal is to enable future modules (cost management, document control, RFIs, daily logs, BIM integration) and partner integrations (Procore, Autodesk, Bluebeam, QuickBooks) without major refactoring. This phase establishes async event-driven communication (BullMQ), comprehensive auditability, and a modular structure that eliminates departmental silos. **Key decisions:** Async-only event bus (Redis pub/sub deferred), shared models with module-specific tables, URL path API versioning.
 
 **Phase 10 Overview:**
-Phase 10 prepares the MVP for a small, internal beta rollout to 5-10 users (including remote/field locations), ensuring stability, security, and structured feedback collection without exposing production data. This phase emphasizes low-risk, controlled deployment; internal validation; user onboarding materials; feedback mechanisms; and basic monitoring. **No new features**—only polish, testing, and rollout preparation.
+Phase 10 prepares the MVP for a small, internal beta rollout to 5-10 users (including remote/field locations), ensuring stability, security, and structured feedback collection without exposing production data. This phase emphasizes **critical sanity checks** before UI finalization: CPM logic verification against P6 benchmarks, GUID persistence round-trip testing, field environment UX audits, and proper "New User" landing screens. Additional focus areas include low-risk, controlled deployment; internal validation; user onboarding materials; feedback mechanisms; and basic monitoring. **No new features**—only polish, testing, verification, and rollout preparation.
 
 **Phase 11 Overview:**
-Phase 11 implements a robust, secure user management system available exclusively to administrators, where new user accounts start with least privileges (assigned to a "New User" role) and admins can then modify permissions to suit specific roles. This phase emphasizes a frictionless, intuitive admin experience with granular permission controls, project-specific access scoping, and seamless onboarding without complexity. The system supports project-specific permissions by default for most roles, while allowing company-wide visibility for leadership/admin roles. All user/role/permission changes are audit-logged via the event bus, maintaining the ERM vision of modular, API-first, event-driven architecture.
+Phase 11 implements a robust, secure user management system with Procore-style hierarchical RBAC, available exclusively to administrators. This phase **must precede beta launch** to establish security and permission boundaries (Subcontractor vs. PM) before onboarding beta users or protecting the Master Schedule from unauthorized field edits. New user accounts start with least privileges (assigned to a "New User" role with "Pending Assignment" landing screen) and admins can then modify permissions using Procore-style hierarchical levels (None, Read Only, Standard, Admin) at both company and project levels. This phase emphasizes a frictionless, intuitive admin experience with granular permission controls, project-specific access scoping, and seamless onboarding without complexity. All user/role/permission changes are audit-logged via the event bus, maintaining the ERM vision of modular, API-first, event-driven architecture.
+
+**Phase 12 Overview:**
+Phase 12 introduces a powerful, unified drag-and-drop Flow Editor canvas for visual lookahead planning—a major usability differentiator inspired by Planera's intuitive flowchart interface. This professional, visual planning tool makes lookahead creation and revision fast, creative, and enjoyable while preserving all existing constraints, conflict detection, and commit/approval gating. The Flow Editor provides a single unified mode toggled from standard lookahead views, with entry points for creating new lookaheads or enhancing existing ones. Features include hybrid card/compact node views, free-form relationship creation via drag-and-drop, auto-layout algorithms, real-time critical path highlighting, and seamless integration with existing lookahead workflows. **Note:** This phase follows RBAC implementation to ensure proper permission enforcement for Flow Editor access.
 
 **Estimated Timeline:**
 - Phase 9: Solo Developer: 6-8 weeks | Small Team (2-3): 4-5 weeks
-- Phase 10: Solo Developer: 3-4 weeks | Small Team (2-3): 2-3 weeks
-- Phase 11: Solo Developer: 4-5 weeks | Small Team (2-3): 3-4 weeks
-- Phase 12: Solo Developer: 3-5 weeks | Small Team (2-3): 2-3 weeks
+- Phase 10: Solo Developer: 4-5 weeks | Small Team (2-3): 3-4 weeks (includes sanity checks and verification)
+- Phase 11: Solo Developer: 4-5 weeks | Small Team (2-3): 3-4 weeks (RBAC - must precede beta)
+- Phase 12: Solo Developer: 4-6 weeks | Small Team (2-3): 3-4 weeks (Flow Editor)
+- Phase 13: Solo Developer: 3-5 weeks | Small Team (2-3): 2-3 weeks
 
 ---
 
@@ -401,6 +477,165 @@ sequenceDiagram
 
 ---
 
+## Database Design
+
+### Core Schema Tables
+
+The application uses PostgreSQL with Prisma ORM for type-safe database access. Key tables include:
+
+#### Import Resilience: GUID Mapping
+
+**`import_mappings` Table:**
+```sql
+CREATE TABLE import_mappings (
+    internal_guid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    external_id VARCHAR(255) NOT NULL, -- P6/MPP Activity ID
+    metadata JSONB, -- Stores import history, date comparisons, relationship changes
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(project_id, external_id)
+);
+
+CREATE INDEX idx_import_mappings_project ON import_mappings(project_id);
+CREATE INDEX idx_import_mappings_external ON import_mappings(external_id);
+```
+
+**Purpose:** Ensures every activity is anchored to a persistent `internal_guid` that never changes, preserving all field data links (photos, notes, lookahead edits, staff assignments) across schedule updates. The `metadata` JSONB field stores:
+- Import history (source file, import date, version)
+- Date shift comparisons (old vs new start/finish dates)
+- Relationship changes (predecessor/successor modifications)
+- Deletion flags (activities removed in new import)
+
+#### Integrated Staffing: HB-Staffing Port
+
+**`labor_resources` Table:**
+```sql
+CREATE TABLE labor_resources (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    role_name VARCHAR(100) NOT NULL, -- e.g., Foreman, Project Engineer, Superintendent
+    standard_rate DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    billable_rate DECIMAL(12, 2), -- Project-specific override
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(company_id, role_name)
+);
+
+CREATE INDEX idx_labor_resources_company ON labor_resources(company_id);
+CREATE INDEX idx_labor_resources_active ON labor_resources(company_id, is_active) WHERE is_active = true;
+```
+
+**Purpose:** Company-defined labor roles with standard and billable rates for financial forecasting. Ported from HB-Staffing Python/Flask tool, this table provides the foundation for:
+- Staff role definitions (Foreman, Project Engineer, etc.)
+- Standard hourly rates for cost estimation
+- Project-specific billable rate overrides
+- Financial forecasting and budget vs actual comparisons
+
+#### Last Planner: Immutable Snapshots
+
+**`lookahead_snapshots` Table:**
+```sql
+CREATE TABLE lookahead_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lookahead_id UUID NOT NULL REFERENCES lookahead_schedules(id) ON DELETE CASCADE,
+    committed_at TIMESTAMP DEFAULT NOW(),
+    committed_by UUID NOT NULL REFERENCES users(id),
+    snapshot_data JSONB NOT NULL, -- Full activity state at time of commit
+    is_approved BOOLEAN DEFAULT false,
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMP,
+    rejection_reason TEXT, -- Mandatory for PM sign-off if rejected
+    merged_to_master BOOLEAN DEFAULT false,
+    merged_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    
+    CONSTRAINT check_approval_state CHECK (
+        (is_approved = true AND approved_by IS NOT NULL AND approved_at IS NOT NULL) OR
+        (is_approved = false AND rejection_reason IS NOT NULL) OR
+        (is_approved = false AND rejection_reason IS NULL) -- Pending state
+    )
+);
+
+CREATE INDEX idx_lookahead_snapshots_lookahead ON lookahead_snapshots(lookahead_id);
+CREATE INDEX idx_lookahead_snapshots_committed ON lookahead_snapshots(committed_at DESC);
+CREATE INDEX idx_lookahead_snapshots_approved ON lookahead_snapshots(is_approved, approved_at) WHERE is_approved = true;
+CREATE INDEX idx_lookahead_snapshots_pending ON lookahead_snapshots(is_approved, committed_at) WHERE is_approved = false;
+```
+
+**Purpose:** Immutable snapshots of lookahead commitments using Last Planner "Pull Planning" methodology. When subcontractors click "Commit", the system creates an immutable snapshot that:
+- Preserves complete activity state (dates, status, resources, attachments)
+- Requires PM approval before merging to master schedule
+- Tracks approval/rejection workflow with mandatory rejection reasons
+- Enables conflict detection by comparing snapshot dates against master schedule float
+- Provides audit trail for all field commitments
+
+**Snapshot Data Structure:**
+```json
+{
+  "activities": [
+    {
+      "id": "uuid",
+      "name": "Install HVAC Ductwork",
+      "status": "will_do",
+      "committedStartDate": "2024-03-15",
+      "committedFinishDate": "2024-03-18",
+      "resources": ["foreman-001", "crew-002"],
+      "attachments": ["photo-123", "note-456"],
+      "comments": ["Ready to start Monday"]
+    }
+  ],
+  "conflicts": [
+    {
+      "activityId": "uuid",
+      "type": "float_violation",
+      "masterFloat": 2,
+      "committedFloat": -1,
+      "severity": "error"
+    }
+  ],
+  "metadata": {
+    "commitMessage": "Week of March 15 commitment",
+    "totalActivities": 12,
+    "willDoCount": 10,
+    "shouldDoCount": 2
+  }
+}
+```
+
+### Additional Core Tables
+
+**`projects`** - Project master data
+**`schedules`** - Master schedules linked to projects
+**`schedule_activities`** - Activities with `persistentInternalGuid` reference
+**`lookahead_schedules`** - Short-term planning windows
+**`lookahead_activities`** - Field-level activity commitments
+**`activity_attachments`** - Photos, notes, files linked via `persistentInternalGuid`
+**`staff_members`** - Individual staff with role assignments
+**`staff_assignments`** - Project-staff allocations with monthly tracking
+**`audit_logs`** - Comprehensive change tracking
+**`webhook_subscriptions`** - Partner integration subscriptions
+
+### Database Relationships
+
+```mermaid
+erDiagram
+    PROJECTS ||--o{ SCHEDULES : "has"
+    SCHEDULES ||--o{ SCHEDULE_ACTIVITIES : "contains"
+    SCHEDULE_ACTIVITIES ||--|| IMPORT_MAPPINGS : "mapped via"
+    SCHEDULES ||--o{ LOOKAHEAD_SCHEDULES : "generates"
+    LOOKAHEAD_SCHEDULES ||--o{ LOOKAHEAD_ACTIVITIES : "contains"
+    LOOKAHEAD_SCHEDULES ||--o{ LOOKAHEAD_SNAPSHOTS : "commits to"
+    SCHEDULE_ACTIVITIES ||--o{ ACTIVITY_ATTACHMENTS : "has"
+    COMPANIES ||--o{ LABOR_RESOURCES : "defines"
+    COMPANIES ||--o{ STAFF_MEMBERS : "employs"
+    STAFF_MEMBERS ||--o{ STAFF_ASSIGNMENTS : "assigned via"
+    PROJECTS ||--o{ STAFF_ASSIGNMENTS : "requires"
+```
+
+---
+
 ## Phase Completion Status
 
 ### Phase 1-2: Foundation & Core API ✅ COMPLETE
@@ -415,12 +650,42 @@ sequenceDiagram
 - ✅ Error handling and validation middleware
 - ✅ XER import with GUID mapping and relationship preservation
 - ✅ ImportMappingService with diff preview capability
+- ✅ **Import Resilience System** - Persistent internal GUID mapping for field data preservation
+- ✅ **Pre-Merge Diff View** - PM review interface for date shifts and deletions before merge
+
+**Import Resilience Architecture (The "Anti-Planera" Logic):**
+The Import Mapping Service ensures that every activity is anchored to a `persistentInternalGuid` that never changes, even when external P6/MPP IDs are updated on re-import. This preserves all field data links (photos, notes, lookahead edits, staff assignments) across schedule updates.
+
+**Key Features:**
+- **Persistent GUID Mapping:** Every activity receives an immutable `internal_guid` on first import
+- **External ID Tracking:** Maps external P6/MPP activity IDs to internal GUIDs via `import_mappings` table
+- **Metadata Storage:** JSONB metadata field stores import history, date comparisons, and relationship changes
+- **Pre-Merge Diff Preview:** PMs review proposed changes (date shifts, deletions, new activities) before applying
+- **Field Data Preservation:** All lookahead activities, attachments, comments, and assignments remain linked via persistent GUID
+
+**Pre-Merge Diff View:**
+Before applying a new XER/MPP import, PMs review a comprehensive diff preview showing:
+- **Date Shifts:** Activities with changed start/finish dates (highlighted with before/after comparison)
+- **Deletions:** Activities removed in new import (flagged for field data preservation decision)
+- **New Activities:** Activities added in new import (with suggested GUID mapping)
+- **Relationship Changes:** Modified predecessor/successor relationships
+- **Metadata Comparison:** Import history, version tracking, and change summaries
+
+The diff view allows PMs to:
+1. Review all proposed changes before merge
+2. Approve/reject specific activity updates
+3. Preserve field data links for deleted activities (orphan handling)
+4. Map new activities to existing field data when appropriate
+5. Track import history and version changes
 
 **Files Implemented:**
-- `backend/prisma/schema.prisma` - Complete database schema
+- `backend/prisma/schema.prisma` - Complete database schema including `import_mappings` table
 - `backend/src/services/scheduleService.ts` - Schedule CRUD + baselines
 - `backend/src/services/activityService.ts` - Activity management + CPM
-- `backend/src/services/importMappingService.ts` - GUID preservation
+- `backend/src/services/importMappingService.ts` - GUID preservation + diff generation
+- `backend/src/services/importDiffService.ts` - Pre-merge diff calculation and preview
+- `backend/src/controllers/importController.ts` - Import endpoints with diff preview
+- `frontend/src/components/import/PreMergeDiffView.tsx` - PM review interface for import changes
 - `backend/src/controllers/*` - All API controllers
 - `backend/src/routes/*` - All API routes
 
@@ -473,7 +738,18 @@ outOfSequenceAttachmentId String?
 
 ---
 
-### Phase 4: Lookahead Workflow ✅ COMPLETE
+### Phase 4: Lookahead Workflow & Last Planner Snapshots ✅ COMPLETE
+
+**Last Planner Methodology:**
+Phase 4 implements the Last Planner System (LPS) "Pull Planning" workflow where subcontractors create immutable commitment snapshots. When field crews click "Commit", the system creates a `lookahead_snapshot` that preserves the complete activity state and requires PM approval before merging to the master schedule. This ensures all field commitments are tracked, auditable, and conflict-checked against master schedule float.
+
+**Key Last Planner Features:**
+- ✅ Immutable snapshot creation on "Commit" button click
+- ✅ Complete activity state preservation (dates, status, resources, attachments)
+- ✅ PM approval workflow with mandatory rejection reasons
+- ✅ Conflict detection comparing snapshot dates vs master schedule float
+- ✅ Audit trail for all field commitments
+- ✅ Merge to master schedule only after approval
 
 #### 4.1 Enhanced Commit Confirmation Modal ✅ COMPLETE
 
@@ -500,6 +776,32 @@ approvedAt          DateTime?
 rejectionReason     String?
 sourceType          String    @default("master") // 'master' | 'lookahead'
 lookaheadApprovalId String?
+
+// Last Planner: Immutable Lookahead Snapshots
+model LookaheadSnapshot {
+  id              String   @id @default(uuid())
+  lookaheadId     String   @map("lookahead_id")
+  committedAt     DateTime @default(now()) @map("committed_at")
+  committedBy     String   @map("committed_by")
+  snapshotData    Json     @map("snapshot_data") // Full activity state at commit time
+  isApproved      Boolean  @default(false) @map("is_approved")
+  approvedBy      String?  @map("approved_by")
+  approvedAt      DateTime? @map("approved_at")
+  rejectionReason String?  @map("rejection_reason") // Mandatory for PM sign-off if rejected
+  mergedToMaster  Boolean  @default(false) @map("merged_to_master")
+  mergedAt        DateTime? @map("merged_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  lookahead LookaheadSchedule @relation(fields: [lookaheadId], references: [id], onDelete: Cascade)
+  committer User @relation("SnapshotCommitter", fields: [committedBy], references: [id])
+  approver   User? @relation("SnapshotApprover", fields: [approvedBy], references: [id])
+  
+  @@index([lookaheadId])
+  @@index([committedAt(sort: Desc)])
+  @@index([isApproved, approvedAt])
+  @@index([isApproved, committedAt])
+  @@map("lookahead_snapshots")
+}
 ```
 
 **Backend Endpoints (Implemented):**
@@ -527,23 +829,25 @@ lookaheadApprovalId String?
 - ✅ Dedicated "Out of Sequence" tab with violation details
 - ✅ Drawer and panel variants
 
-#### 4.4 Conflict Detection Enhancements ✅ COMPLETE
+#### 4.4 Conflict Detection & Gating Logic ✅ COMPLETE
 
 **File:** `backend/src/services/lookaheadService.ts`
 
 **Enhanced `detectConflicts()` method with:**
-- ✅ Zero-float violation detection
+- ✅ **Float Violation Detection:** Auto-highlights conflicts where field "Will-Do" dates contradict master schedule float (negative float = error, zero float = warning)
 - ✅ Resource over-allocation detection (daily hours > 8)
 - ✅ Out-of-sequence risk flagging (lookahead dates vs master logic)
 - ✅ Near-critical path warnings (float < 5 days)
 - ✅ Predecessor conflict detection
 - ✅ Date conflict detection
 - ✅ Configurable thresholds via `ConflictDetectionConfig`
+- ✅ **Snapshot Conflict Detection:** Compares committed snapshot dates against master schedule float before approval
 
 **Conflict Types:**
 ```typescript
 type ConflictType = 
-  | 'zero_float_violation'
+  | 'float_violation' // Field dates violate master schedule float (primary conflict type)
+  | 'zero_float_violation' // Field dates result in zero float
   | 'resource_conflict'
   | 'resource_over_allocation'
   | 'date_conflict'
@@ -551,6 +855,45 @@ type ConflictType =
   | 'out_of_sequence_risk'
   | 'near_critical_path';
 ```
+
+**Float Violation Logic:**
+```typescript
+// Calculate master schedule float for activity
+const masterFloat = activity.totalFloat; // Days of float from CPM calculation
+
+// Compare against committed lookahead dates
+const committedStart = snapshotActivity.committedStartDate;
+const masterEarlyStart = activity.earlyStartDate;
+const committedFloat = daysBetween(masterEarlyStart, committedStart);
+
+if (committedFloat < 0) {
+  // Error: Field commitment violates master schedule float
+  conflicts.push({
+    type: 'float_violation',
+    severity: 'error',
+    activityId: activity.id,
+    masterFloat,
+    committedFloat,
+    message: `Committed date violates master schedule float by ${Math.abs(committedFloat)} days`
+  });
+} else if (committedFloat === 0) {
+  // Warning: Field commitment uses all available float
+  conflicts.push({
+    type: 'zero_float_violation',
+    severity: 'warning',
+    activityId: activity.id,
+    masterFloat,
+    committedFloat,
+    message: 'Committed date uses all available float - activity is now critical'
+  });
+}
+```
+
+**Gating Logic:**
+- Dashboards are gated by nightly sync cycle and PM approval
+- Only approved lookahead snapshots appear in executive dashboards
+- Conflicts must be resolved or acknowledged before approval
+- Rejection requires mandatory reason for audit trail
 
 #### 4.5 Mobile-Responsive SubcontractorTaskCard ✅ COMPLETE
 
@@ -623,7 +966,19 @@ Test fixes applied:
 
 ---
 
-### Phase 4.5: Resource Planning ✅ COMPLETE
+### Phase 4.5: Resource Planning & HB-Staffing Integration ✅ COMPLETE
+
+**HB-Staffing Port Overview:**
+Phase 4.5 includes a complete port of the HB-Staffing tool (originally Python/Flask) into the Node.js/TypeScript stack. This integration provides company-defined labor roles, standard and billable rates, and financial forecasting capabilities that feed into executive dashboards and variance analysis.
+
+**Key HB-Staffing Features Ported:**
+- ✅ Company-defined labor roles (Foreman, Project Engineer, Superintendent, etc.)
+- ✅ Standard hourly rates for cost estimation
+- ✅ Project-specific billable rate overrides
+- ✅ Staff CRUD operations with role assignments
+- ✅ Availability tracking and forecasting
+- ✅ Financial forecasting with budget vs actual comparisons
+- ✅ CSV import for bulk staff data (prep for BambooHR API integration)
 
 #### 4.5.1 Database Schema Updates ✅ COMPLETE
 
@@ -690,6 +1045,24 @@ model ProjectRoleRate {
   staffRoleId  String   @map("staff_role_id")
   billableRate Decimal  @map("billable_rate") @db.Decimal(10, 2)
   // Relations: project, staffRole
+}
+
+// HB-Staffing Port: Company-defined labor roles with rates
+model LaborResource {
+  id           String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  roleName     String   @map("role_name") // e.g., Foreman, Project Engineer
+  standardRate Decimal  @map("standard_rate") @db.Decimal(12, 2)
+  billableRate Decimal? @map("billable_rate") @db.Decimal(12, 2) // Project-specific override
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  @@unique([companyId, roleName])
+  @@index([companyId, isActive])
+  @@map("labor_resources")
 }
 ```
 
@@ -847,14 +1220,17 @@ calculateCapacityAnalysis(companyId: string, staffMemberId: string | null, start
 - Automatic caching of lookahead data for offline access
 - Queue management for offline changes with priority ordering
 - Background sync when connection is restored (30-second interval)
-- Conflict detection between local and server data
+- Conflict detection between local and server data using `lookahead_snapshots` comparison
+- **Snapshot-Based Conflict Detection:** When syncing offline commits, system compares local snapshot data against server-side `lookahead_snapshots` to detect conflicts
+- **Float Violation Flagging:** All conflicts are flagged for manual review, especially float violations where field dates contradict master schedule float
 - Three conflict resolution strategies:
-  - Keep Local: Overwrite server with local changes
-  - Keep Server: Discard local changes
-  - Merge: Field-by-field selection
+  - Keep Local: Overwrite server with local changes (creates new snapshot)
+  - Keep Server: Discard local changes (uses existing approved snapshot)
+  - Merge: Field-by-field selection (creates merged snapshot requiring approval)
 - Online/offline event handling
 - Retry logic with max 3 attempts for failed operations
 - Event subscription system for UI updates
+- **Snapshot Preservation:** Offline commits create local snapshots that are queued for server sync and approval workflow
 
 **Key Methods:**
 ```typescript
@@ -983,20 +1359,97 @@ exportToPDF(scheduleId: string, options?: PDFExportOptions): Promise<Buffer>
 
 **Implemented Features:**
 - ✅ Executive dashboard with portfolio overview
-- ✅ Workflow-gated data integrity (only shows approved data)
+- ✅ Workflow-gated data integrity (only shows approved data from nightly sync cycle)
 - ✅ Project health metrics (SPI, CPI, critical path health)
 - ✅ Critical delays detection and impact categorization
 - ✅ Resource utilization overview
 - ✅ Project drill-down with schedule health metrics
-- ✅ Financial drill-down with budget vs actual
+- ✅ **Financial Drill-Down:** High-level variance → activity-level logs with labor cost breakdown
 - ✅ Monthly breakdown and cost by category
 - ✅ Forecast to completion (optimistic, most likely, pessimistic)
+
+**Executive Dashboard Drill-Down Flow:**
+1. **Portfolio Level:** High-level financial variance across all projects
+2. **Project Level:** Click project → see project health, SPI/CPI, critical delays
+3. **Financial Drill-Down:** Click "Financial Details" → see budget vs actual with variance analysis
+4. **Activity-Level Logs:** Click activity → see detailed logs including:
+   - Labor costs by role (from `labor_resources` table)
+   - Staff assignments and hours (from `staff_assignments` table)
+   - Lookahead snapshot history (from `lookahead_snapshots` table)
+   - Attachment evidence (photos, notes from field)
+   - Approval workflow history
+
+**Gating Logic:**
+- Dashboards only show data from approved lookahead snapshots
+- Nightly sync cycle processes approved snapshots into dashboard data
+- PM approval required before data appears in executive views
+- Real-time updates only for approved/merged changes
 
 **Key Methods:**
 ```typescript
 getExecutiveDashboard(companyId: string): Promise<ExecutiveDashboard>
 getProjectDrillDown(projectId: string): Promise<ProjectDrillDown>
 getFinancialDrillDown(projectId: string): Promise<FinancialDrillDown>
+getActivityLogs(activityId: string): Promise<ActivityLog[]> // New: Activity-level drill-down
+```
+
+**Financial Drill-Down Structure:**
+```typescript
+interface FinancialDrillDown {
+  projectId: string;
+  budget: {
+    total: number;
+    labor: number; // From labor_resources standard rates
+    materials: number;
+    equipment: number;
+  };
+  actual: {
+    total: number;
+    labor: number; // From staff_assignments actual hours × rates
+    materials: number;
+    equipment: number;
+  };
+  variance: {
+    total: number;
+    percentage: number;
+    labor: number;
+    materials: number;
+    equipment: number;
+  };
+  monthlyBreakdown: MonthlyFinancial[]; // Month-by-month comparison
+  activityLevelLogs: ActivityFinancialLog[]; // Drill-down to activity level
+}
+
+interface ActivityFinancialLog {
+  activityId: string;
+  activityName: string;
+  persistentInternalGuid: string; // Links to import_mappings
+  budget: number;
+  actual: number;
+  variance: number;
+  laborBreakdown: {
+    roleName: string; // From labor_resources
+    standardRate: number;
+    billableRate: number;
+    hours: number; // From staff_assignments
+    cost: number;
+  }[];
+  lookaheadSnapshots: {
+    snapshotId: string;
+    committedAt: Date;
+    committedBy: string;
+    approvedAt: Date;
+    approvedBy: string;
+    snapshotData: Json; // Full activity state
+  }[];
+  attachments: {
+    id: string;
+    type: 'photo' | 'note' | 'file';
+    uploadedAt: Date;
+    uploadedBy: string;
+    status: 'pending' | 'approved' | 'rejected';
+  }[];
+}
 ```
 
 #### 6.4 API Endpoints ✅ COMPLETE
@@ -1654,10 +2107,11 @@ docs/
 | Phase 7: Real-time/Notifications | ✅ COMPLETE | - | - |
 | Phase 8: User Engagement & Polish | ✅ COMPLETE | - | - |
 | Phase 9: Core Stabilization & ERM Foundation | ✅ COMPLETE | 6-8 weeks | 4-5 weeks |
-| Phase 10: Beta Readiness & Controlled Launch | ⏳ PENDING | 3-4 weeks | 2-3 weeks |
-| Phase 11: Advanced User Management & Role-Based Permissions | ⏳ PENDING | 4-5 weeks | 3-4 weeks |
-| Phase 12: Comprehensive End-to-End Test Suite | ⏳ PENDING | 3-5 weeks | 2-3 weeks |
-| **Total Remaining** | | **10-14 weeks** | **7-10 weeks** |
+| Phase 10: Beta Readiness & Controlled Launch | ⏳ PENDING | 4-5 weeks | 3-4 weeks |
+| Phase 11: Advanced User Management & Procore-Style RBAC | ⏳ PENDING | 4-5 weeks | 3-4 weeks |
+| Phase 12: Flow Editor for Visual Lookahead Planning | ⏳ PENDING | 4-6 weeks | 3-4 weeks |
+| Phase 13: Comprehensive End-to-End Test Suite | ⏳ PENDING | 3-5 weeks | 2-3 weeks |
+| **Total Remaining** | | **14-20 weeks** | **10-14 weeks** |
 
 ### Phase 9 Breakdown
 
@@ -1680,9 +2134,13 @@ docs/
 
 #### 10.0 Objective
 
-Prepare the MVP for a small, internal beta rollout to 5-10 users (including remote/field locations), ensuring stability, security, and structured feedback collection without exposing production data. This phase focuses on **polish, testing, and rollout preparation**—no new features.
+Prepare the MVP for a small, internal beta rollout to 5-10 users (including remote/field locations), ensuring stability, security, and structured feedback collection without exposing production data. This phase focuses on **critical sanity checks before UI finalization**—CPM logic verification, data portability testing, field environment UX audits, and proper user onboarding. Additional focus areas include polish, testing, and rollout preparation—no new features.
 
 **Key Outcomes:**
+- **CPM Logic Verification:** Retained Logic CPM finish dates exactly match P6 benchmark (user trust in scheduling engine)
+- **Data Portability:** GUID persistence verified across round-trip imports/exports (field data remains "glued" to activities)
+- **Field Environment UX:** High-contrast colors and touch targets optimized for direct sunlight and work gloves
+- **New User Experience:** "Pending Assignment" landing screen prevents user bounce before admin assignment
 - Comprehensive E2E test coverage validating critical user paths
 - Staging environment deployed to Azure matching production configuration
 - Beta user onboarding materials enabling self-service adoption
@@ -1759,7 +2217,226 @@ export const test = base.extend({
 });
 ```
 
-##### 10.1.2 Staging Deployment to Azure
+##### 10.1.2 CPM Sanity Check: P6 Logic Verification
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create P6 benchmark XER test file with known CPM dates | P0 | 4h | `backend/tests/fixtures/p6-benchmark.xer` |
+| Implement P6LogicVerificationService for date comparison | P0 | 1 day | `backend/src/services/p6LogicVerificationService.ts` |
+| Create test utility that imports benchmark XER and calculates CPM | P0 | 1 day | Test utilities |
+| Compare Retained Logic CPM finish dates against P6 benchmark | P0 | 1 day | Verification service |
+| Generate detailed comparison report (activity-by-activity) | P0 | 4h | Verification service |
+| Add tolerance thresholds for acceptable date differences (e.g., ±1 day) | P0 | 2h | Verification service |
+| Create automated test that runs on CI/CD before beta deployment | P0 | 4h | GitHub Actions |
+| Document verification process and acceptable tolerances | P0 | 2h | Test documentation |
+
+**Purpose:** Ensure user trust in the scheduling engine by verifying that Retained Logic CPM calculations exactly match industry-standard Primavera P6 results. This is critical for beta user confidence and prevents scheduling errors that could impact construction projects.
+
+**Implementation:**
+```typescript
+// backend/src/services/p6LogicVerificationService.ts
+interface P6VerificationResult {
+  totalActivities: number;
+  matchingDates: number;
+  dateDifferences: Array<{
+    activityId: string;
+    activityName: string;
+    p6FinishDate: Date;
+    ourFinishDate: Date;
+    differenceDays: number;
+    tolerance: number;
+    status: 'match' | 'within_tolerance' | 'mismatch';
+  }>;
+  overallMatch: boolean;
+  matchPercentage: number;
+}
+
+class P6LogicVerificationService {
+  async verifyAgainstBenchmark(
+    scheduleId: string,
+    benchmarkXerPath: string
+  ): Promise<P6VerificationResult> {
+    // 1. Import benchmark XER
+    // 2. Calculate CPM using our Retained Logic algorithm
+    // 3. Extract P6 finish dates from benchmark
+    // 4. Compare activity-by-activity
+    // 5. Generate detailed report
+  }
+}
+```
+
+**Acceptance Criteria:**
+- 100% of activities match P6 finish dates exactly (or within ±1 day tolerance for rounding)
+- Zero critical path mismatches
+- Detailed report shows any discrepancies with explanations
+- Test runs automatically in CI/CD and blocks deployment on failure
+
+##### 10.1.3 Data Portability Round-Trip: GUID Persistence Verification
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create automated round-trip test flow | P0 | 1 day | `backend/tests/integration/guidPersistence.test.ts` |
+| Implement test: Import XER → Create field edits → Export XER → Re-import | P0 | 1 day | Integration tests |
+| Verify field notes remain linked via internal_guid | P0 | 4h | Test assertions |
+| Verify photos/attachments remain linked via internal_guid | P0 | 4h | Test assertions |
+| Verify staff assignments remain linked via internal_guid | P0 | 4h | Test assertions |
+| Verify lookahead activities remain linked via internal_guid | P0 | 4h | Test assertions |
+| Test with activity deletions and re-additions | P0 | 4h | Edge case testing |
+| Generate round-trip verification report | P0 | 2h | Test reporting |
+| Add to CI/CD pipeline as critical test | P0 | 2h | GitHub Actions |
+
+**Purpose:** Verify that the "Anti-Planera" import resilience system works correctly. Field data (notes, photos, assignments) must remain "glued" to activities via `internal_guid` even after schedule updates, exports, and re-imports.
+
+**Test Flow:**
+```typescript
+// backend/tests/integration/guidPersistence.test.ts
+test('GUID Persistence Round-Trip', async () => {
+  // 1. Import initial XER file
+  const schedule = await importXER('initial-schedule.xer');
+  const activityId = schedule.activities[0].id;
+  const internalGuid = schedule.activities[0].persistentInternalGuid;
+  
+  // 2. Create field edits (notes, photos, assignments)
+  await createFieldNote(activityId, 'Field observation');
+  await uploadPhoto(activityId, 'photo.jpg');
+  await assignStaff(activityId, 'staff-member-1');
+  
+  // 3. Export to XER
+  const exportedXer = await exportToXER(schedule.id);
+  
+  // 4. Modify XER externally (simulate P6 update)
+  const modifiedXer = modifyXERDates(exportedXer);
+  
+  // 5. Re-import modified XER
+  const reimportedSchedule = await importXER(modifiedXer);
+  
+  // 6. Verify field data remains linked
+  const reimportedActivity = reimportedSchedule.activities.find(
+    a => a.persistentInternalGuid === internalGuid
+  );
+  
+  expect(reimportedActivity).toBeDefined();
+  expect(reimportedActivity.fieldNotes).toContain('Field observation');
+  expect(reimportedActivity.attachments).toHaveLength(1);
+  expect(reimportedActivity.staffAssignments).toHaveLength(1);
+});
+```
+
+**Acceptance Criteria:**
+- 100% of field data (notes, photos, assignments) preserved across round-trip
+- Zero orphaned attachments or notes
+- All `internal_guid` mappings remain intact
+- Test passes in CI/CD before beta deployment
+
+##### 10.1.4 Field Environment UX: Direct Sunlight Visibility & Touch Target Audit
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Audit color-coded status indicators for high-glare visibility | P0 | 1 day | `frontend/src/components/lookahead/SubcontractorTaskCard.tsx` |
+| Test Green/Yellow/Red status colors in direct sunlight conditions | P0 | 4h | UX testing |
+| Verify WCAG AAA contrast ratios for outdoor use (minimum 7:1) | P0 | 4h | Accessibility audit |
+| Audit touch target sizes for SubcontractorTaskCard buttons | P0 | 4h | Mobile UX audit |
+| Ensure minimum 44x44px touch targets for field use | P0 | 2h | Component updates |
+| Test with gloves on (simulate field conditions) | P0 | 2h | Physical testing |
+| Optimize button spacing to prevent accidental taps | P0 | 2h | Component updates |
+| Create field environment testing checklist | P0 | 2h | Documentation |
+| Document color palette for high-glare environments | P0 | 2h | Design system |
+
+**Purpose:** Ensure the application is usable in real field conditions—direct sunlight, high glare, and with work gloves. This is critical for field crew adoption and prevents user frustration that could derail beta testing.
+
+**Color Contrast Requirements:**
+- **Green (Will Do/Completed):** Minimum 7:1 contrast ratio, high saturation for visibility
+- **Yellow (Should Do/Pending):** Minimum 7:1 contrast ratio, avoid light yellow
+- **Red (Overdue/Critical):** Minimum 7:1 contrast ratio, high visibility
+- **Background:** High contrast against white/light backgrounds in sunlight
+
+**Touch Target Requirements:**
+- Minimum 44x44px for all interactive elements
+- Minimum 8px spacing between buttons
+- Large tap areas for "Should Do" / "Will Do" buttons
+- Test with various glove types (leather, work gloves, touchscreen gloves)
+
+**Implementation:**
+```typescript
+// frontend/src/components/lookahead/SubcontractorTaskCard.tsx
+// High-contrast color palette for field use
+const FIELD_STATUS_COLORS = {
+  willDo: '#1B5E20',      // Dark green (7:1 contrast)
+  shouldDo: '#F57F17',    // Dark yellow (7:1 contrast)
+  overdue: '#B71C1C',     // Dark red (7:1 contrast)
+  critical: '#D32F2F',    // Bright red (7:1 contrast)
+};
+
+// Touch target sizes
+const TOUCH_TARGET_MIN = 44; // pixels
+const BUTTON_SPACING = 8;    // pixels
+```
+
+**Acceptance Criteria:**
+- All status indicators meet WCAG AAA contrast (7:1 minimum)
+- All buttons meet 44x44px minimum touch target
+- Usable in direct sunlight with high-glare screen
+- Tested with work gloves (leather and touchscreen-compatible)
+
+##### 10.1.5 New User Landing: Pending Assignment Screen
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create PendingAssignmentLanding component | P0 | 1 day | `frontend/src/components/auth/PendingAssignmentLanding.tsx` |
+| Design "Pending Assignment" screen with clear messaging | P0 | 4h | Component design |
+| Add contact information for admin assignment | P0 | 2h | Component content |
+| Implement role-based routing to landing screen | P0 | 4h | `frontend/src/hooks/useRoleBasedLanding.ts` |
+| Add "Request Access" button (optional, sends notification to admin) | P0 | 4h | Component functionality |
+| Create onboarding message explaining next steps | P0 | 2h | Component content |
+| Test with new user registration flow | P0 | 2h | Integration testing |
+| Update "New User" role description in documentation | P0 | 1h | README |
+
+**Purpose:** Prevent new users from bouncing before an Admin assigns them to a project. The "Pending Assignment" landing screen provides clear expectations and prevents confusion that could lead to beta user drop-off.
+
+**Component Structure:**
+```typescript
+// frontend/src/components/auth/PendingAssignmentLanding.tsx
+interface PendingAssignmentLandingProps {
+  userName: string;
+  userEmail: string;
+}
+
+export const PendingAssignmentLanding: React.FC<PendingAssignmentLandingProps> = ({
+  userName,
+  userEmail,
+}) => {
+  return (
+    <Container>
+      <Typography variant="h4">Welcome, {userName}!</Typography>
+      <Typography variant="body1">
+        Your account has been created successfully. An administrator will assign
+        you to a project shortly.
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        Once assigned, you'll receive an email notification and can begin using
+        the application.
+      </Typography>
+      <Button onClick={handleRequestAccess}>
+        Request Project Access
+      </Button>
+      <ContactInfo>
+        <Typography variant="caption">
+          Questions? Contact your administrator at admin@company.com
+        </Typography>
+      </ContactInfo>
+    </Container>
+  );
+};
+```
+
+**Acceptance Criteria:**
+- New users see "Pending Assignment" screen immediately after registration
+- Clear messaging about next steps
+- Contact information for admin assistance
+- Optional "Request Access" functionality
+- Prevents access to any project data until assigned
+
+##### 10.1.6 Staging Deployment to Azure
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -1814,7 +2491,7 @@ jobs:
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 ```
 
-##### 10.1.3 Beta User Onboarding Package
+##### 10.1.7 Beta User Onboarding Package
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -1861,7 +2538,7 @@ const betaUsers = [
 ];
 ```
 
-##### 10.1.4 Feedback Collection
+##### 10.1.8 Feedback Collection
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -1917,7 +2594,7 @@ assignees: ''
 - Screenshot capture capability
 - Auto-include user context (role, current page, browser info)
 
-##### 10.1.5 Monitoring Setup
+##### 10.1.9 Monitoring Setup
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -1960,7 +2637,7 @@ if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
 - Approval workflow completion time
 - Export generation time
 
-##### 10.1.6 Controlled Rollout Plan
+##### 10.1.10 Controlled Rollout Plan
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2090,14 +2767,577 @@ docker/
 
 ---
 
-### Phase 11: Advanced User Management & Role-Based Permissions ⏳ PENDING
+### Phase 11: Advanced User Management & Procore-Style RBAC ⏳ PENDING
+
+#### 12.0 Objective
+
+Introduce a powerful, unified drag-and-drop Flow Editor canvas for visual lookahead planning—a major usability differentiator that transforms lookahead creation and revision into a fast, creative, and enjoyable experience. Inspired by Planera's intuitive flowchart interface, the Flow Editor provides a professional visual planning tool while preserving all existing constraints, conflict detection, and commit/approval gating workflows. This feature drives field adoption by making lookahead planning intuitive and visually engaging.
+
+**Key Outcomes:**
+- Unified Flow Editor mode accessible from standard lookahead views (calendar/list)
+- Multiple entry points: create new lookaheads or enhance existing ones with visual editing
+- Hybrid canvas representation (card style with compact node toggle) for optimal usability
+- Free-form relationship creation via drag-and-drop with visual feedback
+- Auto-layout algorithms for efficient organization
+- Real-time critical path highlighting and constraint feedback
+- Template library for reusable lookahead patterns
+- Seamless integration with existing lookahead workflows and commit/approval gating
+- Performance-optimized for 100+ task lookaheads
+
+**Usability Differentiator:**
+The Flow Editor transforms lookahead planning from a form-based task into a visual, creative process. Field crews and schedulers can see relationships, constraints, and critical paths at a glance, making planning faster and more intuitive. This visual approach reduces cognitive load and enables creative problem-solving while maintaining data integrity through existing validation and gating mechanisms.
+
+#### 12.1 Detailed Task Checklist
+
+##### 12.1.1 Flow Editor Component & Entry Points
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create FlowEditor component with toggle from standard lookahead view | P0 | 1 day | `frontend/src/components/lookahead/FlowEditor.tsx` |
+| Add "Create New Lookahead with Flow" button to lookahead list view | P0 | 4h | LookaheadView component |
+| Add "Edit in Flow Mode" button to existing lookahead view | P0 | 4h | LookaheadView component |
+| Implement mode toggle state management (standard ↔ flow) | P0 | 4h | LookaheadView state |
+| Create FlowEditor layout with toolbar and canvas area | P0 | 1 day | FlowEditor component |
+| Add exit/back button to return to standard view | P0 | 2h | FlowEditor component |
+
+**Component Structure:**
+```typescript
+// frontend/src/components/lookahead/FlowEditor.tsx
+interface FlowEditorProps {
+  lookaheadId?: string; // undefined for new, defined for editing
+  projectId: string;
+  onApply: (changes: LookaheadChanges) => void;
+  onCancel: () => void;
+}
+
+export const FlowEditor: React.FC<FlowEditorProps> = ({
+  lookaheadId,
+  projectId,
+  onApply,
+  onCancel,
+}) => {
+  // React Flow canvas implementation
+  // Toolbar with view toggles, auto-layout, search/filter
+  // Side panel for property editing
+  // Mini-map and zoom controls
+};
+```
+
+##### 12.1.2 Quick-Choice Modal for Creation
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create CreateLookaheadModal component | P0 | 1 day | `frontend/src/components/lookahead/CreateLookaheadModal.tsx` |
+| Implement quick-choice options (Blank canvas, From master schedule, From template) | P0 | 4h | CreateLookaheadModal |
+| Add advanced filters for master schedule import (date range, WBS/phase/section, location/zone, task status, custom fields/tags) | P0 | 1 day | CreateLookaheadModal |
+| Implement template library preview with thumbnails and categories | P0 | 1 day | CreateLookaheadModal |
+| Add template selection and preview functionality | P0 | 4h | CreateLookaheadModal |
+| Integrate with lookaheadService for data fetching | P0 | 4h | CreateLookaheadModal |
+
+**Modal Structure:**
+```typescript
+// frontend/src/components/lookahead/CreateLookaheadModal.tsx
+interface CreateLookaheadModalProps {
+  projectId: string;
+  onSelect: (option: 'blank' | 'master' | 'template', config?: CreationConfig) => void;
+  onCancel: () => void;
+}
+
+type CreationConfig = 
+  | { type: 'blank' }
+  | { type: 'master'; filters: MasterScheduleFilters }
+  | { type: 'template'; templateId: string };
+```
+
+##### 12.1.3 React Flow Canvas Implementation
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Install and configure @xyflow/react library | P0 | 2h | `package.json` |
+| Create custom ActivityCardNode component (default card style with details) | P0 | 1 day | `frontend/src/components/lookahead/flow/ActivityCardNode.tsx` |
+| Create custom ActivityCompactNode component (compact view for large lookaheads) | P0 | 4h | `frontend/src/components/lookahead/flow/ActivityCompactNode.tsx` |
+| Implement node type toggle (card ↔ compact) | P0 | 4h | FlowEditor toolbar |
+| Configure React Flow with custom nodes and edges | P0 | 1 day | FlowEditor component |
+| Implement connection/edge rendering with relationship types | P0 | 1 day | FlowEditor component |
+| Add edge styling for relationship types (FS, SS, FF, SF) | P0 | 4h | FlowEditor component |
+| Configure React Flow controls (zoom, pan, fit view) | P0 | 4h | FlowEditor component |
+
+**Node Implementation:**
+```typescript
+// frontend/src/components/lookahead/flow/ActivityCardNode.tsx
+import { Handle, Position } from '@xyflow/react';
+
+export const ActivityCardNode = ({ data }: NodeProps<ActivityNodeData>) => {
+  return (
+    <div className="activity-card-node">
+      <Handle type="target" position={Position.Top} />
+      <div className="activity-header">
+        <span className="activity-name">{data.name}</span>
+        <span className="activity-status">{data.status}</span>
+      </div>
+      <div className="activity-details">
+        <div>Duration: {data.duration} days</div>
+        <div>Start: {formatDate(data.startDate)}</div>
+        {data.resources && <div>Resources: {data.resources.join(', ')}</div>}
+      </div>
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+};
+```
+
+##### 12.1.4 Drag-and-Drop Relationship Creation
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Implement free drag from card/node edge (source handle) | P0 | 1 day | FlowEditor component |
+| Create temporary line/edge during drag with snap-to-target logic | P0 | 1 day | FlowEditor component |
+| Implement nearest valid target detection and highlighting | P0 | 1 day | FlowEditor component |
+| Add relationship type selection on release (default FS, options: FS, SS, FF, SF) | P0 | 4h | FlowEditor component |
+| Create relationship type selector popover/menu | P0 | 4h | FlowEditor component |
+| Add visual feedback for invalid targets during drag | P0 | 4h | FlowEditor component |
+| Implement connection validation (prevent circular dependencies, validate constraints) | P0 | 1 day | FlowEditor component |
+
+**Drag Handler:**
+```typescript
+// FlowEditor drag-and-drop logic
+const onConnectStart = (event: React.MouseEvent, node: Node) => {
+  // Start temporary edge from source node
+  setTempEdge({ from: node.id, to: null, x: event.clientX, y: event.clientY });
+};
+
+const onConnectEnd = (event: React.MouseEvent) => {
+  const targetNode = getNodeAtPosition(event.clientX, event.clientY);
+  if (targetNode && isValidConnection(sourceNode, targetNode)) {
+    showRelationshipTypeSelector(sourceNode.id, targetNode.id);
+  }
+  setTempEdge(null);
+};
+```
+
+##### 12.1.5 Relationship Editing & Management
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Implement click on edge/line to select relationship | P0 | 4h | FlowEditor component |
+| Create relationship edit popover (change type, lag, delete) | P0 | 4h | `frontend/src/components/lookahead/flow/RelationshipEditor.tsx` |
+| Add delete relationship functionality (click edge + delete key or context menu) | P0 | 4h | FlowEditor component |
+| Implement relationship type change with validation | P0 | 4h | FlowEditor component |
+| Add lag time editing for relationships | P0 | 2h | RelationshipEditor |
+| Create context menu for edges (edit, delete, properties) | P0 | 4h | FlowEditor component |
+
+##### 12.1.6 Hybrid Property Editing
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create inline editing for basic properties (duration, status) on card nodes | P0 | 1 day | ActivityCardNode component |
+| Create PropertySidePanel component for advanced editing | P0 | 1 day | `frontend/src/components/lookahead/flow/PropertySidePanel.tsx` |
+| Implement side panel toggle (show/hide) | P0 | 2h | FlowEditor component |
+| Add resource assignment UI in side panel | P0 | 4h | PropertySidePanel |
+| Add constraint editing (date constraints, milestones) in side panel | P0 | 4h | PropertySidePanel |
+| Add custom fields/tags editing in side panel | P0 | 4h | PropertySidePanel |
+| Implement property change validation and conflict detection | P0 | 1 day | PropertySidePanel |
+| Add real-time property updates to canvas nodes | P0 | 4h | FlowEditor component |
+
+**Property Side Panel:**
+```typescript
+// frontend/src/components/lookahead/flow/PropertySidePanel.tsx
+interface PropertySidePanelProps {
+  selectedNode: Node<ActivityNodeData> | null;
+  onUpdate: (nodeId: string, updates: Partial<ActivityNodeData>) => void;
+  onClose: () => void;
+}
+
+export const PropertySidePanel: React.FC<PropertySidePanelProps> = ({
+  selectedNode,
+  onUpdate,
+  onClose,
+}) => {
+  // Basic properties (inline-editable in card)
+  // Advanced: Resources, Constraints, Custom Fields
+  // Real-time validation and conflict warnings
+};
+```
+
+##### 12.1.7 Auto-Layout Algorithms
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Implement start date-based auto-layout (horizontal timeline) | P0 | 1 day | `frontend/src/utils/flowLayout.ts` |
+| Implement resource swimlane auto-layout (group by resource) | P0 | 1 day | Flow layout utilities |
+| Implement phase grouping auto-layout (group by WBS/phase) | P0 | 1 day | Flow layout utilities |
+| Implement critical path auto-layout (highlight critical path, group by float) | P0 | 1 day | Flow layout utilities |
+| Create auto-layout algorithm selector in toolbar | P0 | 4h | FlowEditor toolbar |
+| Add "Apply Layout" button with algorithm selection | P0 | 4h | FlowEditor toolbar |
+| Implement smooth layout transition animation | P0 | 4h | FlowEditor component |
+| Add layout preservation option (manual positioning override) | P1 | 4h | FlowEditor component |
+
+**Layout Algorithm:**
+```typescript
+// frontend/src/utils/flowLayout.ts
+export type LayoutAlgorithm = 'start-date' | 'resource-swimlane' | 'phase-grouping' | 'critical-path';
+
+export function applyAutoLayout(
+  nodes: Node[],
+  edges: Edge[],
+  algorithm: LayoutAlgorithm
+): { nodes: Node[]; edges: Edge[] } {
+  switch (algorithm) {
+    case 'start-date':
+      return layoutByStartDate(nodes, edges);
+    case 'resource-swimlane':
+      return layoutByResource(nodes, edges);
+    case 'phase-grouping':
+      return layoutByPhase(nodes, edges);
+    case 'critical-path':
+      return layoutByCriticalPath(nodes, edges);
+  }
+}
+```
+
+##### 12.1.8 Zoom, Pan, and Mini-Map
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Configure React Flow zoom controls (zoom in/out, fit view) | P0 | 2h | FlowEditor component |
+| Implement smooth pan with mouse drag | P0 | 2h | FlowEditor component |
+| Add keyboard shortcuts for zoom (Ctrl/Cmd + scroll, +/- keys) | P0 | 2h | FlowEditor component |
+| Create MiniMap component using React Flow MiniMap | P0 | 4h | FlowEditor component |
+| Configure mini-map styling and positioning | P0 | 2h | FlowEditor component |
+| Add mini-map toggle in toolbar | P0 | 1h | FlowEditor toolbar |
+| Implement viewport synchronization with mini-map | P0 | 4h | FlowEditor component |
+
+##### 12.1.9 Search and Filter Bar
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create SearchFilterBar component | P0 | 1 day | `frontend/src/components/lookahead/flow/SearchFilterBar.tsx` |
+| Implement live search with debouncing | P0 | 4h | SearchFilterBar |
+| Add match highlighting on nodes (highlight matching text) | P0 | 4h | SearchFilterBar |
+| Implement dimming of non-matching nodes | P0 | 4h | SearchFilterBar |
+| Add filter options (status, resource, phase, date range) | P0 | 1 day | SearchFilterBar |
+| Create filter chips for active filters | P0 | 4h | SearchFilterBar |
+| Implement clear filters functionality | P0 | 2h | SearchFilterBar |
+| Add search result count indicator | P0 | 2h | SearchFilterBar |
+
+**Search/Filter Implementation:**
+```typescript
+// frontend/src/components/lookahead/flow/SearchFilterBar.tsx
+interface SearchFilterBarProps {
+  nodes: Node[];
+  onFilterChange: (filteredNodes: Node[]) => void;
+}
+
+export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
+  nodes,
+  onFilterChange,
+}) => {
+  // Live search with debounce
+  // Match highlighting
+  // Filter options (status, resource, phase, date)
+  // Dim non-matching nodes
+};
+```
+
+##### 12.1.10 Critical Path Highlighting
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Integrate critical path calculation from lookaheadService | P0 | 4h | FlowEditor component |
+| Implement real-time critical path recalculation on changes | P0 | 1 day | FlowEditor component |
+| Add visual highlighting for critical path nodes (border, background color) | P0 | 4h | ActivityCardNode/ActivityCompactNode |
+| Add visual highlighting for critical path edges (thicker, different color) | P0 | 4h | FlowEditor edge styling |
+| Create critical path toggle in toolbar (default on) | P0 | 2h | FlowEditor toolbar |
+| Add critical path legend/indicator | P0 | 2h | FlowEditor component |
+| Optimize critical path calculation for performance (100+ nodes) | P0 | 1 day | FlowEditor component |
+
+##### 12.1.11 Resource and Constraint Feedback
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Implement real-time resource conflict detection | P0 | 1 day | FlowEditor component |
+| Add visual warnings for resource over-allocation (node border, icon) | P0 | 4h | ActivityCardNode |
+| Implement constraint violation detection (date constraints, dependencies) | P0 | 1 day | FlowEditor component |
+| Add visual warnings for constraint violations | P0 | 4h | ActivityCardNode |
+| Create "Strict Mode" toggle (default off) that prevents invalid operations | P0 | 1 day | FlowEditor component |
+| Add warning tooltips on hover for conflicts | P0 | 4h | ActivityCardNode |
+| Implement conflict summary panel (optional, collapsible) | P1 | 4h | FlowEditor component |
+
+##### 12.1.12 Undo/Redo System
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create undo/redo action stack (20-50 actions) | P0 | 1 day | `frontend/src/hooks/useUndoRedo.ts` |
+| Implement action tracking (node moves, property changes, relationship changes) | P0 | 1 day | FlowEditor component |
+| Add undo/redo keyboard shortcuts (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z) | P0 | 2h | FlowEditor component |
+| Create undo/redo buttons in toolbar | P0 | 2h | FlowEditor toolbar |
+| Implement action stack limit with oldest action removal | P0 | 2h | useUndoRedo hook |
+| Add visual feedback for undo/redo operations | P0 | 2h | FlowEditor component |
+
+**Undo/Redo Implementation:**
+```typescript
+// frontend/src/hooks/useUndoRedo.ts
+interface UndoRedoState<T> {
+  past: T[];
+  present: T;
+  future: T[];
+  maxHistory: number;
+}
+
+export function useUndoRedo<T>(initialState: T, maxHistory: number = 30) {
+  // Action stack management
+  // Undo/redo functions
+  // State preservation
+}
+```
+
+##### 12.1.13 Auto-Draft and Apply Changes
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Implement auto-draft saving (periodic, e.g., every 30 seconds) | P0 | 1 day | FlowEditor component |
+| Implement auto-draft on exit (before closing/mode switch) | P0 | 4h | FlowEditor component |
+| Create draft storage in IndexedDB (offline support) | P0 | 4h | FlowEditor component |
+| Create "Apply Changes" confirmation modal | P0 | 4h | `frontend/src/components/lookahead/flow/ApplyChangesModal.tsx` |
+| Show change summary in Apply Changes modal (added/removed/modified activities) | P0 | 4h | ApplyChangesModal |
+| Implement apply changes workflow (save to lookahead, return to standard view) | P0 | 1 day | FlowEditor component |
+| Ensure changes are saved but not auto-committed | P0 | 4h | FlowEditor component |
+| Add "Discard Changes" option with confirmation | P0 | 4h | FlowEditor component |
+
+**Apply Changes Flow:**
+```typescript
+// FlowEditor apply changes workflow
+const handleApplyChanges = async () => {
+  // 1. Show confirmation modal with change summary
+  // 2. Validate all changes (conflicts, constraints)
+  // 3. Save to lookahead via lookaheadService
+  // 4. Return to standard view
+  // 5. Changes visible but NOT auto-committed
+  // 6. User must manually trigger standard commit button
+};
+```
+
+##### 12.1.14 Template Library
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Create LookaheadTemplate Prisma model | P0 | 4h | `backend/prisma/schema.prisma` |
+| Create templateService for CRUD operations | P0 | 1 day | `backend/src/services/templateService.ts` |
+| Create template API endpoints (GET, POST, PUT, DELETE) | P0 | 4h | `backend/src/routes/templateRoutes.ts` |
+| Create TemplateLibrary component with grid view | P0 | 1 day | `frontend/src/components/lookahead/templates/TemplateLibrary.tsx` |
+| Implement template preview thumbnails (screenshot or generated) | P0 | 1 day | TemplateLibrary |
+| Add template categories and filtering | P0 | 4h | TemplateLibrary |
+| Create template creation UI (save current lookahead as template) | P0 | 1 day | FlowEditor toolbar |
+| Implement template application (load template into canvas) | P0 | 1 day | FlowEditor component |
+| Add admin-only template management (curated templates) | P1 | 4h | TemplateLibrary |
+| Create template sharing (company-wide visibility) | P1 | 4h | TemplateService |
+
+**Template Schema:**
+```prisma
+model LookaheadTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  category    String?
+  thumbnail   String?  // URL or base64
+  companyId   String   @map("company_id")
+  createdBy   String   @map("created_by")
+  isCurated   Boolean  @default(false) @map("is_curated")
+  templateData Json    // Serialized lookahead structure
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  company Company @relation(fields: [companyId], references: [id])
+  creator User    @relation(fields: [createdBy], references: [id])
+  
+  @@index([companyId, category])
+  @@map("lookahead_templates")
+}
+```
+
+##### 12.1.15 Mobile/Touch Support
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Configure React Flow for touch events (pinch zoom, pan) | P0 | 4h | FlowEditor component |
+| Implement tap-to-select on mobile | P0 | 4h | FlowEditor component |
+| Ensure drag works on touch devices | P0 | 4h | FlowEditor component |
+| Test and optimize touch interactions | P0 | 4h | FlowEditor component |
+| Add touch-friendly controls (larger buttons, gesture hints) | P1 | 4h | FlowEditor component |
+| Document mobile limitations (desktop-first, no special mobile UI) | P0 | 2h | README |
+
+##### 12.1.16 Lookahead Service Integration
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Extend lookaheadService with Flow Editor data methods | P0 | 1 day | `backend/src/services/lookaheadService.ts` |
+| Create API endpoint for Flow Editor data (GET /api/v1/lookaheads/:id/flow) | P0 | 4h | Lookahead routes |
+| Create API endpoint for applying Flow Editor changes (POST /api/v1/lookaheads/:id/flow/apply) | P0 | 4h | Lookahead routes |
+| Implement data transformation (lookahead → React Flow nodes/edges) | P0 | 1 day | FlowEditor component |
+| Implement data transformation (React Flow nodes/edges → lookahead) | P0 | 1 day | FlowEditor component |
+| Preserve existing constraints and validation rules | P0 | 1 day | LookaheadService |
+| Ensure conflict detection works with Flow Editor changes | P0 | 1 day | LookaheadService |
+| Maintain commit/approval gating workflow | P0 | 4h | FlowEditor integration |
+
+**Data Transformation:**
+```typescript
+// frontend/src/utils/flowDataTransform.ts
+export function lookaheadToFlowData(lookahead: LookaheadSchedule): FlowData {
+  const nodes: Node[] = lookahead.activities.map(activity => ({
+    id: activity.id,
+    type: 'activityCard',
+    position: activity.flowPosition || calculatePosition(activity),
+    data: {
+      ...activity,
+      // Transform activity data to node data
+    },
+  }));
+  
+  const edges: Edge[] = lookahead.relationships.map(rel => ({
+    id: rel.id,
+    source: rel.predecessorId,
+    target: rel.successorId,
+    type: 'smoothstep',
+    data: {
+      relationshipType: rel.type,
+      lag: rel.lag,
+    },
+  }));
+  
+  return { nodes, edges };
+}
+
+export function flowDataToLookahead(
+  flowData: FlowData,
+  baseLookahead: LookaheadSchedule
+): LookaheadSchedule {
+  // Transform nodes/edges back to lookahead structure
+  // Preserve existing data, update positions and relationships
+  // Validate constraints and conflicts
+}
+```
+
+##### 12.1.17 Performance Optimization
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Optimize React Flow rendering for 100+ nodes | P0 | 1 day | FlowEditor component |
+| Implement node virtualization for large lookaheads | P0 | 1 day | FlowEditor component |
+| Optimize critical path calculation for large graphs | P0 | 1 day | FlowEditor component |
+| Add performance monitoring and metrics | P0 | 4h | FlowEditor component |
+| Implement lazy loading for template thumbnails | P0 | 4h | TemplateLibrary |
+| Optimize auto-layout algorithms for performance | P0 | 1 day | Flow layout utilities |
+| Add loading states for large lookahead operations | P0 | 4h | FlowEditor component |
+| Validate performance with 100+ task lookaheads | P0 | 1 day | Performance testing |
+
+##### 12.1.18 Testing
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Write unit tests for canvas logic (node positioning, edge creation) | P0 | 1 day | `frontend/tests/components/FlowEditor.test.tsx` |
+| Write unit tests for auto-layout algorithms | P0 | 1 day | `frontend/tests/utils/flowLayout.test.ts` |
+| Write unit tests for data transformation utilities | P0 | 4h | `frontend/tests/utils/flowDataTransform.test.ts` |
+| Write integration tests for apply/commit flow | P0 | 1 day | `backend/tests/integration/flowEditor.test.ts` |
+| Write E2E tests for full creation cycle (blank canvas → activities → relationships → apply) | P0 | 1 day | `frontend/tests/e2e/flow-editor-creation.spec.ts` |
+| Write E2E tests for enhancement cycle (edit existing → modify → apply) | P0 | 1 day | `frontend/tests/e2e/flow-editor-enhancement.spec.ts` |
+| Write E2E tests for template library (create, apply, manage) | P0 | 4h | `frontend/tests/e2e/flow-editor-templates.spec.ts` |
+| Write performance tests for 100+ node lookaheads | P0 | 4h | Performance test suite |
+
+##### 12.1.19 Documentation
+
+| Task | Priority | Effort | Integration Point |
+|------|----------|--------|-------------------|
+| Update README with Flow Editor section | P0 | 1 day | `README.md` |
+| Create Flow Editor user guide with screenshots | P0 | 1 day | `docs/FLOW_EDITOR_GUIDE.md` |
+| Document entry points and workflows | P0 | 4h | Flow Editor guide |
+| Document keyboard shortcuts and interactions | P0 | 4h | Flow Editor guide |
+| Add usage examples and best practices | P0 | 4h | Flow Editor guide |
+| Document template library management | P0 | 4h | Flow Editor guide |
+| Create video tutorial (optional) | P1 | 1 day | Documentation |
+
+#### 12.2 Code Integration Points
+
+##### New Files to Create
+
+```
+frontend/src/components/lookahead/
+├── FlowEditor.tsx                    # Main Flow Editor component
+├── CreateLookaheadModal.tsx          # Quick-choice modal for creation
+├── flow/
+│   ├── ActivityCardNode.tsx          # Default card-style node
+│   ├── ActivityCompactNode.tsx       # Compact node view
+│   ├── RelationshipEditor.tsx       # Relationship edit popover
+│   ├── PropertySidePanel.tsx         # Advanced property editing
+│   ├── SearchFilterBar.tsx          # Search and filter bar
+│   └── ApplyChangesModal.tsx         # Apply changes confirmation
+├── templates/
+│   └── TemplateLibrary.tsx           # Template library component
+
+frontend/src/utils/
+├── flowLayout.ts                     # Auto-layout algorithms
+├── flowDataTransform.ts              # Lookahead ↔ Flow data transformation
+└── flowValidation.ts                # Canvas validation logic
+
+frontend/src/hooks/
+└── useUndoRedo.ts                    # Undo/redo hook
+
+backend/src/services/
+└── templateService.ts                # Template CRUD operations
+
+backend/src/routes/
+└── templateRoutes.ts                 # Template API endpoints
+
+backend/prisma/
+└── migrations/
+    └── [timestamp]_add_lookahead_templates/
+        └── migration.sql             # LookaheadTemplate model
+```
+
+##### Existing Files to Modify
+
+| File | Modifications |
+|------|---------------|
+| `frontend/src/components/lookahead/LookaheadView.tsx` | Add Flow Editor toggle buttons and mode switching |
+| `backend/src/services/lookaheadService.ts` | Add Flow Editor data methods (getFlowData, applyFlowChanges) |
+| `backend/src/routes/lookaheadRoutes.ts` | Add Flow Editor endpoints (GET /flow, POST /flow/apply) |
+| `backend/prisma/schema.prisma` | Add LookaheadTemplate model |
+| `README.md` | Add Flow Editor section with guide and screenshots |
+
+#### 12.3 Test Requirements
+
+| Area | Test Type | Coverage |
+|------|-----------|----------|
+| Canvas Logic | Unit | Node positioning, edge creation, relationship validation |
+| Auto-Layout | Unit | All layout algorithms (start date, resource, phase, critical path) |
+| Data Transformation | Unit | Lookahead ↔ Flow data conversion, position preservation |
+| Apply/Commit Flow | Integration | Changes saved, not auto-committed, standard commit required |
+| Creation Cycle | E2E | Blank canvas → activities → relationships → apply → commit |
+| Enhancement Cycle | E2E | Edit existing → modify in flow → apply → commit |
+| Template Library | E2E | Create template, apply template, manage templates |
+| Performance | Performance | 100+ node lookaheads render and interact smoothly |
+
+#### 12.4 Risk Mitigation
+
+| Risk | Mitigation |
+|------|------------|
+| Performance degradation with large lookaheads (100+ nodes) | Node virtualization, optimized algorithms, lazy loading, performance testing |
+| Complex state management for undo/redo | Limited action stack (20-50), efficient state serialization, clear action boundaries |
+| Data integrity concerns with visual editing | Preserve all validation rules, conflict detection, apply changes confirmation, manual commit required |
+| Learning curve for new visual interface | Comprehensive documentation, video tutorials, inline tooltips, gradual rollout |
+| Mobile/touch limitations | Desktop-first approach, functional touch support, clear documentation of limitations |
+| Template library management overhead | Curated templates, admin controls, clear categorization, preview thumbnails |
+
+---
+
+### Phase 12: Flow Editor for Visual Lookahead Planning ⏳ PENDING
 
 #### 11.0 Objective
 
-Implement a robust, secure user management system available exclusively to administrators, where new user accounts start with least privileges (assigned to a "New User" role) and admins can then modify permissions to suit specific roles. This phase emphasizes a **frictionless, intuitive admin experience** with granular permission controls, project-specific access scoping, and seamless onboarding without complexity.
+Implement a robust, secure user management system with Procore-style hierarchical RBAC, available exclusively to administrators. This phase **must precede beta launch** to establish security and permission boundaries (Subcontractor vs. PM) before onboarding beta users or protecting the Master Schedule from unauthorized field edits. New user accounts start with least privileges (assigned to a "New User" role with "Pending Assignment" landing screen) and admins can then modify permissions using Procore-style hierarchical levels (None, Read Only, Standard, Admin) at both company and project levels. This phase emphasizes a frictionless, intuitive admin experience with granular permission controls, project-specific access scoping, and seamless onboarding without complexity. All user/role/permission changes are audit-logged via the event bus, maintaining the ERM vision of modular, API-first, event-driven architecture.
 
 **Key Outcomes:**
 - Admin-only user management UI enabling efficient user creation, search, editing, and bulk import
+- **Procore-Style RBAC:** Tree-structured permission model with hierarchical levels (None, Read Only, Standard, Admin)
 - Granular permission system with role-based defaults and customizable project-scoped access
 - Default "New User" role for all new accounts (self-registration, admin invite, import)
 - Project assignment system linking users to specific projects with scoped permissions
@@ -2105,22 +3345,53 @@ Implement a robust, secure user management system available exclusively to admin
 - Enhanced RBAC middleware enforcing least-privilege and role-based access
 - Integration with existing ERM architecture (modular, API-first, event-driven)
 
+**Procore-Style Permission Model:**
+The system implements a tree-structured permission hierarchy inspired by Procore's permission model, with four permission levels that can be assigned at both company and project levels:
+
+1. **None** - No access (default for new users)
+2. **Read Only** - View-only access to assigned resources
+3. **Standard** - Read + write access (most common for field crews, schedulers)
+4. **Admin** - Full access including user/role management (project-level or company-level)
+
+**Permission Hierarchy:**
+```
+Company Level:
+  - None: No company-wide access
+  - Read Only: View company dashboards, reports
+  - Standard: Create projects, manage company settings
+  - Admin: Full company administration
+
+Project Level:
+  - None: No project access
+  - Read Only: View schedules, lookaheads, reports
+  - Standard: Edit schedules, create lookaheads, commit changes
+  - Admin: Full project administration, user assignment
+```
+
 **Security Principles:**
-- **Least Privilege:** All new users start with "New User" role (read-only public content, no project access)
-- **Explicit Assignment:** Administrators must explicitly assign roles and permissions
+- **Least Privilege:** All new users start with "New User" role (None permission level)
+- **Explicit Assignment:** Administrators must explicitly assign permission levels and roles
 - **Project Scoping:** Most roles have project-specific permissions by default
 - **Company-Wide Access:** Leadership and admin roles have company-wide visibility
+- **Hierarchical Inheritance:** Company-level permissions provide baseline, project-level permissions override
 - **Audit Trail:** Every user/role/permission change is logged and traceable
 
 #### 11.1 Defined Roles & Permissions
 
 ##### New User (Default for All New Accounts)
-- **Primary Responsibility:** None yet assigned — placeholder state
+- **Primary Responsibility:** None yet assigned — placeholder state awaiting admin assignment
 - **Default Permissions:**
-  - Read-only access to public landing page or onboarding/tutorial content
+  - Read-only access to "Pending Assignment" landing screen
   - Cannot log in to any project
   - Cannot view schedules
   - Cannot perform any action
+  - Optional: Can request project access (sends notification to admin)
+- **Landing Experience:** Upon login, new users see a "Pending Assignment" screen with:
+  - Welcome message explaining account status
+  - Clear explanation that admin assignment is required
+  - Contact information for administrator
+  - Optional "Request Access" button to notify admin
+  - Prevents user bounce before assignment
 - **Admin Escalation:** Assign any other role + fine-tune granular permissions (e.g., view-only on specific projects)
 
 ##### Subcontractor
@@ -2216,8 +3487,9 @@ model Permission {
   resource String // 'schedule', 'lookahead', 'project', 'dashboard', etc.
   action   String // 'read', 'write', 'approve', 'delete', etc.
   scope    String @default("project") // 'project', 'company', 'global'
+  level    String @default("none") // 'none', 'read_only', 'standard', 'admin' (Procore-style)
   
-  @@unique([resource, action, scope])
+  @@unique([resource, action, scope, level])
   @@map("permissions")
 }
 
@@ -2243,7 +3515,8 @@ model ProjectPermission {
   id         String   @id @default(uuid())
   userId     String   @map("user_id")
   projectId  String   @map("project_id")
-  permission String   // Permission key (e.g., 'schedule:write')
+  permission String   // Permission key (e.g., 'schedule:write') or level ('none', 'read_only', 'standard', 'admin')
+  level      String   @default("none") // Procore-style: 'none', 'read_only', 'standard', 'admin'
   granted    Boolean  @default(true)
   grantedBy  String   @map("granted_by")
   grantedAt  DateTime @default(now()) @map("granted_at")
@@ -2253,11 +3526,29 @@ model ProjectPermission {
   
   @@unique([userId, projectId, permission])
   @@index([userId, projectId])
+  @@index([userId, projectId, level])
   @@map("project_permissions")
+}
+
+// Procore-Style Company Permission (hierarchical baseline)
+model CompanyPermission {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  companyId  String   @map("company_id")
+  level      String   @default("none") // 'none', 'read_only', 'standard', 'admin'
+  grantedBy  String   @map("granted_by")
+  grantedAt  DateTime @default(now()) @map("granted_at")
+  
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, companyId])
+  @@index([userId, companyId])
+  @@map("company_permissions")
 }
 ```
 
-##### 11.2.2 Permission Service
+##### 12.2.2 Permission Service
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2311,7 +3602,7 @@ class PermissionService {
 }
 ```
 
-##### 11.2.3 User Management Service
+##### 12.2.3 User Management Service
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2359,7 +3650,7 @@ class UserManagementService {
 }
 ```
 
-##### 11.2.4 Admin UI Components
+##### 12.2.4 Admin UI Components
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2380,7 +3671,7 @@ class UserManagementService {
 - **Project Assignment:** Multi-select project picker with role assignment per project
 - **Bulk Import:** CSV upload with preview, validation, and import progress
 
-##### 11.2.5 API Endpoints
+##### 12.2.5 API Endpoints
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2414,7 +3705,7 @@ PUT    /api/v1/admin/users/:id/permissions # Update permissions (admin only)
 GET    /api/v1/admin/roles              # List all roles (admin only)
 ```
 
-##### 11.2.6 RBAC Middleware Enhancement
+##### 12.2.6 RBAC Middleware Enhancement
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2472,7 +3763,7 @@ export const requirePermission = (resource: string, action: string) => {
 };
 ```
 
-##### 11.2.7 Default "New User" Role Implementation
+##### 12.2.7 Default "New User" Role Implementation
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2482,7 +3773,7 @@ export const requirePermission = (resource: string, action: string) => {
 | Create "New User" role seed data | P0 | 2h | `backend/prisma/seed.ts` |
 | Update frontend to show "New User" status | P0 | 2h | User management UI |
 
-##### 11.2.8 Audit Logging Integration
+##### 12.2.8 Audit Logging Integration
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2492,7 +3783,7 @@ export const requirePermission = (resource: string, action: string) => {
 | Create event types: UserCreated, UserUpdated, UserDeleted, RoleAssigned, RoleRemoved, PermissionGranted | P0 | 2h | `shared/src/events.ts` |
 | Ensure audit logs capture all user/role changes | P0 | 4h | Event bus processors |
 
-##### 11.2.9 Testing
+##### 12.2.9 Testing
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2513,7 +3804,7 @@ export const requirePermission = (resource: string, action: string) => {
 - Bulk import with validation
 - Audit logging on all changes
 
-##### 11.2.10 Documentation
+##### 12.2.10 Documentation
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2596,9 +3887,9 @@ shared/src/
 
 ---
 
-### Phase 12: Comprehensive End-to-End Test Suite ⏳ PENDING
+### Phase 13: Comprehensive End-to-End Test Suite ⏳ PENDING
 
-#### 12.0 Objective
+#### 13.0 Objective
 
 Create a production-grade, comprehensive end-to-end test suite using Playwright that automates preliminary vetting, validates all critical user flows, ensures UI correctness, maintains data integrity, verifies offline behavior, and validates cross-module interactions. The suite must cover approximately 80-90% of manual vetting tasks, enabling reliable regression testing and providing high confidence for beta and production deployment.
 
@@ -2617,9 +3908,9 @@ Create a production-grade, comprehensive end-to-end test suite using Playwright 
 - **Visual Regression:** All major screens and components with baseline comparisons
 - **Performance:** Smoke tests for large schedule handling and response time validation
 
-#### 12.1 Detailed Task Checklist
+#### 13.1 Detailed Task Checklist
 
-##### 12.1.1 Playwright Configuration Expansion
+##### 13.1.1 Playwright Configuration Expansion
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2664,7 +3955,7 @@ export default defineConfig({
 });
 ```
 
-##### 12.1.2 Page Object Models
+##### 13.1.2 Page Object Models
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2719,7 +4010,7 @@ export class LoginPage extends BasePage {
 }
 ```
 
-##### 12.1.3 Authentication & RBAC Tests
+##### 13.1.3 Authentication & RBAC Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2759,7 +4050,7 @@ test.describe('RBAC Enforcement', () => {
 });
 ```
 
-##### 12.1.4 Master Schedule Flow Tests
+##### 13.1.4 Master Schedule Flow Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2793,7 +4084,7 @@ test('Retained logic recalculates correctly after activity update', async ({ pag
 });
 ```
 
-##### 12.1.5 Lookahead Workflow Tests
+##### 13.1.5 Lookahead Workflow Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2842,7 +4133,7 @@ test('Complete lookahead workflow: pull → edit → commit → approve → merg
 });
 ```
 
-##### 12.1.6 Offline Sync Tests
+##### 13.1.6 Offline Sync Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2888,7 +4179,7 @@ test('Offline sync with conflict resolution', async ({ page, context }) => {
 });
 ```
 
-##### 12.1.7 Export Tests
+##### 13.1.7 Export Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2899,7 +4190,7 @@ test('Offline sync with conflict resolution', async ({ page, context }) => {
 | Test export options (date range, filters, summary level) | P0 | 4h | Export tests |
 | Test XER export for Primavera P6 compatibility | P0 | 4h | Export tests |
 
-##### 12.1.8 Real-time Notification Tests
+##### 13.1.8 Real-time Notification Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2910,7 +4201,7 @@ test('Offline sync with conflict resolution', async ({ page, context }) => {
 | Test notification preferences (in-app, email, digest) | P0 | 4h | Notification tests |
 | Test notification event triggers (activity update, approval, comment) | P0 | 1 day | Notification tests |
 
-##### 12.1.9 Usability & Polish Tests
+##### 13.1.9 Usability & Polish Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2922,7 +4213,7 @@ test('Offline sync with conflict resolution', async ({ page, context }) => {
 | Test drag-drop functionality | P0 | 4h | Usability tests |
 | Test one-tap status changes on mobile | P0 | 4h | Usability tests |
 
-##### 12.1.10 Performance & Smoke Tests
+##### 13.1.10 Performance & Smoke Tests
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2932,7 +4223,7 @@ test('Offline sync with conflict resolution', async ({ page, context }) => {
 | Test memory usage during extended sessions | P0 | 4h | Performance tests |
 | Test concurrent user operations | P0 | 1 day | Performance tests |
 
-##### 12.1.11 Visual Regression Testing
+##### 13.1.11 Visual Regression Testing
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -2962,7 +4253,7 @@ test('Dashboard visual regression', async ({ page }) => {
 });
 ```
 
-##### 12.1.12 Test Data Factory & Fixtures
+##### 13.1.12 Test Data Factory & Fixtures
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -3013,7 +4304,7 @@ export class ScheduleFactory {
 }
 ```
 
-##### 12.1.13 CI/CD Integration
+##### 13.1.13 CI/CD Integration
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -3069,7 +4360,7 @@ jobs:
             videos/
 ```
 
-##### 12.1.14 Test Documentation
+##### 13.1.14 Test Documentation
 
 | Task | Priority | Effort | Integration Point |
 |------|----------|--------|-------------------|
@@ -3081,7 +4372,7 @@ jobs:
 | Document test maintenance procedures | P0 | 4h | Test documentation |
 | Create troubleshooting guide for common test failures | P0 | 4h | Test documentation |
 
-#### 12.2 Code Integration Points
+#### 13.2 Code Integration Points
 
 ##### New Files to Create
 
@@ -3151,7 +4442,7 @@ docs/
 | `.github/workflows/ci.yml` | Add E2E test step or create separate workflow |
 | `README.md` | Add E2E testing section with run commands |
 
-#### 12.3 Test Requirements
+#### 13.3 Test Requirements
 
 | Area | Test Type | Coverage |
 |------|-----------|----------|
@@ -3165,7 +4456,7 @@ docs/
 | Performance | E2E | Large schedule handling, response times |
 | Visual Regression | Visual | All major screens and components |
 
-#### 12.4 Risk Mitigation
+#### 13.4 Risk Mitigation
 
 | Risk | Mitigation |
 |------|------------|
@@ -3211,21 +4502,35 @@ The application is now production-ready with a solid architectural foundation fo
 - **Enterprise Use** - Single source of truth architecture eliminates departmental silos
 
 **Next Steps:**
-1. **Phase 10: Beta Readiness & Controlled Launch** - Prepare for internal beta rollout (3-4 weeks)
+1. **Phase 10: Beta Readiness & Controlled Launch** - Prepare for internal beta rollout with critical sanity checks (4-5 weeks)
+   - **CPM Logic Verification:** P6 benchmark comparison to ensure scheduling engine accuracy
+   - **GUID Persistence Round-Trip:** Verify field data remains linked across imports/exports
+   - **Field Environment UX Audit:** High-contrast colors and touch targets for direct sunlight use
+   - **New User Landing:** "Pending Assignment" screen to prevent user bounce
    - Comprehensive E2E testing with Playwright
    - Staging deployment to Azure
    - Beta user onboarding materials
    - Feedback collection and monitoring setup
    - Controlled rollout to 5-10 internal users
 
-2. **Phase 11: Advanced User Management & Role-Based Permissions** - Implement secure, frictionless admin user management (4-5 weeks)
-   - Admin-only user management UI with role assignment
-   - Granular permission system with project scoping
-   - Default "New User" role for all new accounts
+2. **Phase 11: Advanced User Management & Procore-Style RBAC** - Establish security boundaries before beta (4-5 weeks)
+   - **Must precede beta launch** to protect Master Schedule from unauthorized edits
+   - Admin-only user management UI with Procore-style hierarchical permissions
+   - Permission levels: None, Read Only, Standard, Admin (company and project scoped)
+   - Default "New User" role with "Pending Assignment" landing screen
    - Enhanced RBAC middleware with least-privilege enforcement
-   - Comprehensive audit logging on all user/role changes
+   - Comprehensive audit logging on all user/role/permission changes
 
-3. **Phase 12: Comprehensive End-to-End Test Suite** - Create production-grade E2E test automation (3-5 weeks)
+3. **Phase 12: Flow Editor for Visual Lookahead Planning** - Create powerful visual drag-and-drop planning tool (4-6 weeks)
+   - Unified Flow Editor canvas with React Flow
+   - Multiple entry points (create new, enhance existing)
+   - Drag-and-drop relationship creation with visual feedback
+   - Auto-layout algorithms and real-time critical path highlighting
+   - Template library for reusable lookahead patterns
+   - Seamless integration with existing lookahead workflows
+   - **Note:** Follows RBAC implementation to ensure proper permission enforcement
+
+4. **Phase 13: Comprehensive End-to-End Test Suite** - Create production-grade E2E test automation (3-5 weeks)
    - Expand Playwright configuration for full coverage
    - Comprehensive Page Object Models for all major screens
    - E2E tests for all critical user flows (auth, schedules, lookahead, offline, exports, notifications)
@@ -3233,11 +4538,11 @@ The application is now production-ready with a solid architectural foundation fo
    - Test data factories and CI/CD integration
    - Test documentation and maintenance procedures
 
-**Post-Phase 12:**
-4. **First New Module** - Begin implementation of cost management or document control module
-5. **Partner Integration** - Establish first partner webhook integration (e.g., Procore)
-6. **Mobile Enhancements** - Further optimize mobile experience for field crews
-7. **Production Deployment** - Full production rollout after successful beta
+**Post-Phase 13:**
+5. **First New Module** - Begin implementation of cost management or document control module
+6. **Partner Integration** - Establish first partner webhook integration (e.g., Procore)
+7. **Mobile Enhancements** - Further optimize mobile experience for field crews
+8. **Production Deployment** - Full production rollout after successful beta
 
 ---
 
@@ -3300,6 +4605,41 @@ The application is now production-ready with a solid architectural foundation fo
 
 ---
 
+## Phase 11 Refinement Questions
+
+### 1. Template Library Management Strategy
+
+**Question:** How should the template library be managed? Should templates be curated by admins only, or should all users be able to create and share templates?
+
+- **Option A:** Admin-only template creation and curation (centralized control, quality assurance)
+- **Option B:** User-created templates with company-wide sharing (democratic, user-driven)
+- **Option C:** Hybrid approach (users can create personal templates, admins curate company-wide templates)
+
+**Recommendation:** Option C (hybrid approach) provides the best balance. Users can create and save personal templates for their own workflows, enabling creativity and personalization. Admins can curate high-quality templates for company-wide use, ensuring consistency and best practices. This approach supports both individual productivity and organizational standardization while maintaining quality control through admin curation.
+
+### 2. Mobile Touch Priority
+
+**Question:** Should mobile/touch support be fully optimized in Phase 11, or is functional support sufficient with full optimization deferred to a later phase?
+
+- **Option A:** Full mobile optimization (touch-optimized UI, gesture controls, mobile-specific layouts)
+- **Option B:** Functional support only (pinch zoom, tap-to-select, drag works, but desktop-first UI)
+- **Option C:** Defer mobile optimization entirely to a later phase
+
+**Recommendation:** Option B (functional support only) aligns with the desktop-first approach. The Flow Editor is a complex visual tool that benefits from large screens and precise mouse control. Functional touch support (pinch zoom, tap-to-select, drag) ensures mobile users can access and use the feature when needed, but full mobile optimization can be deferred to a later phase focused on mobile enhancements. This keeps Phase 11 focused on core desktop functionality while maintaining accessibility.
+
+### 3. Auto-Layout Algorithm Default
+
+**Question:** Which auto-layout algorithm should be the default when users first open the Flow Editor or apply auto-layout?
+
+- **Option A:** Start date-based (horizontal timeline) - most intuitive for scheduling
+- **Option B:** Critical path - highlights most important activities
+- **Option C:** Phase grouping - organizes by WBS/phases
+- **Option D:** User preference/smart default based on lookahead characteristics
+
+**Recommendation:** Option D (smart default) provides the best user experience. The system should analyze the lookahead characteristics (number of activities, phase structure, critical path complexity) and select the most appropriate default layout. For new blank canvases, start date-based layout is most intuitive. For existing lookaheads with clear phase structure, phase grouping may be better. For lookaheads with complex dependencies, critical path highlighting may be most valuable. Users can always override the default, but a smart choice reduces friction.
+
+---
+
 ## Development Environment Setup
 
 ### Prerequisites
@@ -3354,12 +4694,41 @@ VITE_API_URL=http://localhost:3001/api/v1
 
 ## Changelog
 
-### 2026-02-05 - Phase 12: Comprehensive End-to-End Test Suite Added
-- **Phase 12 Overview:**
-  - Added comprehensive Phase 12 plan focusing on production-grade E2E test suite with Playwright
+### 2026-02-05 - Phase 11: Flow Editor for Visual Lookahead Planning Added
+- **Phase 11 Overview:**
+  - Added comprehensive Phase 11 plan focusing on visual drag-and-drop Flow Editor for lookahead planning
+  - Defined objective: Create powerful, unified visual planning tool that transforms lookahead creation/revision into fast, creative, enjoyable experience
+  - Emphasized Flow Editor as major usability differentiator inspired by Planera's intuitive flowchart interface
+  - Preserves all existing constraints, conflict detection, and commit/approval gating workflows
+- **Phase 11 Deliverables:**
+  - FlowEditor component with toggle entry points from standard lookahead view
+  - Quick-choice modal for creation (blank canvas, from master schedule with advanced filters, from template library)
+  - React Flow canvas implementation with custom nodes (card/compact views), connections, auto-layout, mini-map
+  - Free-form drag-and-drop relationship creation with visual feedback
+  - Hybrid property editing (basic inline, advanced in side panel)
+  - Multiple auto-layout algorithms (start date, resource swimlane, phase grouping, critical path)
+  - Real-time critical path highlighting and constraint feedback
+  - Search/filter bar with match highlighting
+  - Undo/redo system (20-50 actions)
+  - Auto-draft saving with explicit "Apply Changes" confirmation
+  - Template library with curated and admin-extensible templates
+  - Mobile/touch support (desktop-first, functional touch)
+  - Integration with existing lookahead service and workflows
+  - Performance optimization for 100+ task lookaheads
+  - Comprehensive tests and documentation
+- **Timeline Estimates:**
+  - Solo Developer: 4-6 weeks
+  - Small Team (2-3): 3-4 weeks
+- **Updated todos list:** Added Phase 11 tasks (all pending), renumbered existing Phase 11 to Phase 12, Phase 12 to Phase 13
+- **Updated timeline table:** Added Phase 11 row with estimates, renumbered existing phases
+- **Updated "Immediate Next Steps":** Added Phase 11 as next priority after Phase 10
+
+### 2026-02-05 - Phase 13: Comprehensive End-to-End Test Suite Added (Renumbered from Phase 12)
+- **Phase 13 Overview:**
+  - Added comprehensive Phase 13 plan focusing on production-grade E2E test suite with Playwright
   - Defined objective: Automate 80-90% of manual vetting tasks, validate all critical user flows, ensure UI correctness and data integrity
   - Emphasized comprehensive coverage for critical paths (100%), high-risk areas (90%+), and user flows (80%+)
-- **Phase 12 Deliverables:**
+- **Phase 13 Deliverables:**
   - Expanded Playwright configuration for multiple browsers, mobile emulation, and staging support
   - Comprehensive Page Object Models for all major screens and workflows
   - E2E tests covering authentication/RBAC, master schedule flows, lookahead full cycle, offline sync, exports, real-time notifications, usability polish, and performance
@@ -3370,9 +4739,29 @@ VITE_API_URL=http://localhost:3001/api/v1
 - **Timeline Estimates:**
   - Solo Developer: 3-5 weeks
   - Small Team (2-3): 2-3 weeks
-- **Updated todos list:** Added Phase 12 tasks (all pending)
-- **Updated timeline table:** Added Phase 12 row with estimates
-- **Updated "Immediate Next Steps":** Added Phase 12 as next priority after Phase 11
+- **Note:** Phase renumbered from Phase 12 to Phase 13 due to insertion of Phase 11 (Flow Editor)
+
+### 2026-02-05 - Phase 12: Advanced User Management & Role-Based Permissions Added (Renumbered from Phase 11)
+- **Phase 12 Overview:**
+  - Added comprehensive Phase 12 plan focusing on secure, frictionless admin user management
+  - Defined objective: Implement robust user management system with least-privilege defaults and granular permissions
+  - Emphasized fantastic admin UX with intuitive role assignment and permission controls
+- **Phase 12 Deliverables:**
+  - Admin-only user management UI (create, search, edit users; bulk import)
+  - Granular permission system with role-based defaults and project-scoped access
+  - Default "New User" role for all new accounts (self-registration, admin invite, import)
+  - Project assignment system linking users to specific projects with scoped permissions
+  - Enhanced RBAC middleware enforcing least-privilege and role-based access
+  - Comprehensive audit logging on all user/role/permission changes via event bus
+  - Integration with existing ERM architecture (modular, API-first, event-driven)
+- **Defined Roles & Permissions:**
+  - New User (default), Subcontractor, Superintendent, Project Manager, Project Executive, Leadership, 3rd Party, Administrator
+  - Detailed role definitions with primary responsibilities, default permissions, and admin escalation paths
+  - Project-specific permissions by default for most roles, company-wide visibility for leadership/admin
+- **Timeline Estimates:**
+  - Solo Developer: 4-5 weeks
+  - Small Team (2-3): 3-4 weeks
+- **Note:** Phase renumbered from Phase 11 to Phase 12 due to insertion of Phase 11 (Flow Editor)
 
 ### 2026-02-05 - Authentication & Settings Improvements
 - **Authentication Token Management:**
@@ -3404,30 +4793,6 @@ VITE_API_URL=http://localhost:3001/api/v1
   - `frontend/src/App.tsx` - Skip token validation on auth pages, added Settings route
   - `frontend/src/components/common/Layout.tsx` - Added Settings route highlighting
   - `frontend/src/services/api/client.ts` - Use centralized clearAuthTokens utility
-
-### 2026-02-05 - Phase 11: Advanced User Management & Role-Based Permissions Added
-- **Phase 11 Overview:**
-  - Added comprehensive Phase 11 plan focusing on secure, frictionless admin user management
-  - Defined objective: Implement robust user management system with least-privilege defaults and granular permissions
-  - Emphasized fantastic admin UX with intuitive role assignment and permission controls
-- **Phase 11 Deliverables:**
-  - Admin-only user management UI (create, search, edit users; bulk import)
-  - Granular permission system with role-based defaults and project-scoped access
-  - Default "New User" role for all new accounts (self-registration, admin invite, import)
-  - Project assignment system linking users to specific projects with scoped permissions
-  - Enhanced RBAC middleware enforcing least-privilege and role-based access
-  - Comprehensive audit logging on all user/role/permission changes via event bus
-  - Integration with existing ERM architecture (modular, API-first, event-driven)
-- **Defined Roles & Permissions:**
-  - New User (default), Subcontractor, Superintendent, Project Manager, Project Executive, Leadership, 3rd Party, Administrator
-  - Detailed role definitions with primary responsibilities, default permissions, and admin escalation paths
-  - Project-specific permissions by default for most roles, company-wide visibility for leadership/admin
-- **Timeline Estimates:**
-  - Solo Developer: 4-5 weeks
-  - Small Team (2-3): 3-4 weeks
-- **Updated todos list:** Added Phase 11 tasks (all pending)
-- **Updated timeline table:** Added Phase 11 row with estimates
-- **Updated "Immediate Next Steps":** Added Phase 11 as next priority after Phase 10
 
 ### 2026-02-05 - Phase 10: Beta Readiness & Controlled Launch Added
 - **Phase 10 Overview:**
