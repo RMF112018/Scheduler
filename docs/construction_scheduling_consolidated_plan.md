@@ -2505,6 +2505,69 @@ export const PendingAssignmentLanding: React.FC<PendingAssignmentLandingProps> =
 - "Request Access" button UI ready but API integration pending
 - E2E tests verified existing - no new tests needed, CI/CD integration added
 
+**Phase 13 Implementation Summary (Completed Tasks):**
+
+✅ **13.1.1 Playwright Configuration Expansion** - Enhanced configuration with mobile emulation (Pixel 5, iPhone 12), visual regression support, and multi-browser projects (Chromium, WebKit, Mobile Chrome, Mobile Safari)
+
+✅ **13.1.2 Page Object Models** - Comprehensive POMs created:
+- `ScheduleDetailPage.ts` - Schedule operations, CPM verification, import/export, Gantt chart rendering
+- `LookaheadViewPage.ts` - Lookahead workflows, offline sync, attachments, 44x44px touch target verification
+- `PendingAssignmentPage.ts` - RBAC testing for new_user role
+- Enhanced existing POMs (LoginPage, DashboardPage, ApprovalPage, etc.)
+
+✅ **13.1.3 Tier 1: Core Critical Paths (Smoke Suite)** - Full workflow tests:
+- Login → Import XER → Update Activity → Verify CPM Recalculation → Export PDF
+- Gantt chart rendering verification
+- Activity update handling
+
+✅ **13.1.4 Tier 2: GUID Persistence & Offline Integrity (Anti-Planera Suite)** - Critical verification:
+- Offline sync with attachment preservation (Go offline → Attach photo → Mark as Will Do → Reconnect → Commit)
+- GUID persistence across navigation (Attach photo → Navigate away → Navigate back)
+- 44x44px touch target verification on mobile devices (WCAG AAA compliance)
+
+✅ **13.1.5 Tier 3: Security & Performance (Vulnerability Suite)** - Beta-gate validation:
+- RBAC enforcement (new_user redirects to PendingAssignmentLanding, blocked from project data)
+- Load performance tests (Gantt chart with 1000+ activities, render time < 10s)
+- API response time verification (< 500ms)
+
+✅ **13.1.6 Visual Regression Tests** - Screenshot comparison:
+- Gantt chart screenshot comparison
+- Activity card screenshot comparison
+- Pending assignment landing page screenshot
+- Threshold: 0.2 (20% pixel difference allowed)
+
+✅ **13.1.7 Test Data Factories** - Reproducible test states:
+- `ScheduleFactory.ts` - Create schedules with activities, relationships, baselines, large schedules (1000+ activities)
+- `UserFactory.ts` - Create users with various roles (new_user, field_crew, scheduler, superintendent, admin)
+
+✅ **13.1.8 CI/CD Integration** - Automated test execution:
+- `.github/workflows/e2e-tests.yml` - Separate jobs for each tier with parallel execution
+- Tier 1: Runs on Chromium and WebKit (parallel)
+- Tier 2: Runs on Chromium and Mobile Chrome (parallel)
+- Tier 3: Runs on Chromium only
+- Visual Regression: Runs on Chromium only
+- Test result artifacts uploaded (screenshots, videos, reports)
+
+✅ **13.1.9 Test Documentation** - Comprehensive documentation:
+- `tests/e2e/README.md` - Test suite structure, running tests, best practices
+- `tests/e2e/IMPLEMENTATION_SUMMARY.md` - Detailed implementation notes
+
+**Key Files Created (21 files):**
+- `playwright.config.ts` - Enhanced configuration
+- `tests/e2e/fixtures/ScheduleFactory.ts`, `UserFactory.ts`, `index.ts`
+- `tests/e2e/pages/ScheduleDetailPage.ts`, `LookaheadViewPage.ts`, `PendingAssignmentPage.ts`
+- `tests/e2e/specs/tier1-smoke.spec.ts`, `tier2-guid-persistence.spec.ts`, `tier3-security-performance.spec.ts`, `visual-regression.spec.ts`
+- `tests/e2e/README.md`, `tests/e2e/IMPLEMENTATION_SUMMARY.md`
+- `.github/workflows/e2e-tests.yml`
+
+**Lint Fixes (2026-02-05):**
+- Fixed 41 lint errors across codebase (39 backend, 2 frontend)
+- Removed unused imports (Prisma, User, BaseEvent, Readable, join, readFileSync)
+- Fixed unused variables in services and test files
+- Prefixed unused parameters with underscore (_userId, _theme)
+- Added eslint-disable for intentional namespace usage
+- All files now pass linting with zero errors and zero warnings
+
 ##### 10.1.6 Staging Deployment to Azure
 
 | Task | Priority | Effort | Integration Point |
