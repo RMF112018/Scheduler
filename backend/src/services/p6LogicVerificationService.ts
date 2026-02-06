@@ -16,7 +16,7 @@ import { readFileSync } from 'fs';
 import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 import { ActivityService } from '../modules/core/services/activityService.js';
-import { importMappingService, ExternalActivity, ExternalRelationship } from './importMappingService.js';
+import { importMappingService, ExternalActivity, ExternalRelationship } from '../modules/core/services/importMappingService.js';
 import { BadRequestError } from '../utils/errors.js';
 
 // ============================================================================
