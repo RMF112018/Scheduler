@@ -15,9 +15,10 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
@@ -53,9 +54,10 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: cd backend && pnpm db:generate
@@ -75,9 +77,10 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:frontend
@@ -113,9 +116,10 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
