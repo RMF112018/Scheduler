@@ -15,8 +15,6 @@ describe('LookaheadService', () => {
   let testUser: { id: string; email: string; companyId: string };
   let testProject: { id: string; name: string; companyId: string; createdBy: string };
   let testSchedule: { id: string; name: string; projectId: string; createdBy: string };
-  // let activityIds: string[];
-
   let activityIds: string[];
 
   beforeEach(async () => {
