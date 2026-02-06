@@ -10,7 +10,7 @@ import { prisma } from '../setup.js';
 import { p6LogicVerificationService } from '../../src/services/p6LogicVerificationService.js';
 import { scheduleService } from '../../src/services/index.js';
 import { importMappingService } from '../../src/services/index.js';
-import { readFileSync } from 'fs';
+// import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('P6LogicVerificationService', () => {
@@ -68,7 +68,7 @@ describe('P6LogicVerificationService', () => {
 
   it('should verify CPM dates against P6 benchmark', async () => {
     // Import benchmark XER
-    const xerContent = readFileSync(benchmarkXerPath, 'utf8');
+    // const xerContent = readFileSync(benchmarkXerPath, 'utf8');
     
     // Parse and import activities
     const externalActivities = [

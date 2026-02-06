@@ -30,7 +30,7 @@ import {
 
 describe('Lookahead Workflow Integration Tests', () => {
   let lookaheadService: LookaheadService;
-  let validationService: ScheduleValidationService;
+  // let validationService: ScheduleValidationService;
   
   // Test entities
   let company: TestCompany;
@@ -38,7 +38,7 @@ describe('Lookahead Workflow Integration Tests', () => {
   let pmUser: TestUser;         // Project Manager (approver)
   let project: TestProject;
   let masterSchedule: TestSchedule;
-  let activityIds: string[];
+  // let activityIds: string[];
 
   beforeEach(async () => {
     lookaheadService = new LookaheadService();
@@ -243,7 +243,7 @@ describe('Lookahead Workflow Integration Tests', () => {
       });
 
       // Pull from master again
-      const pullResult = await lookaheadService.pullFromMaster(lookahead.id);
+      await lookaheadService.pullFromMaster(lookahead.id);
 
       // Verify the will_do activity was not overwritten
       const updatedLookahead = await lookaheadService.findById(lookahead.id, {
@@ -299,7 +299,7 @@ describe('Lookahead Workflow Integration Tests', () => {
       const { lookahead, activities } = await setupLookaheadWithActivities();
 
       // Find a critical activity
-      const criticalActivity = activities.find((a) => {
+      const criticalActivity = activities.find((_a) => {
         // Activity 0 is set as critical in our test data
         return true; // We'll check the first one
       });
@@ -759,7 +759,7 @@ describe('Lookahead Workflow Integration Tests', () => {
 
   describe('7. Attachment Approval Gating', () => {
     it('should create attachment with pending status from lookahead', async () => {
-      const { lookahead, activities } = await setupLookaheadWithActivities();
+      const { activities } = await setupLookaheadWithActivities();
 
       // Create an attachment from lookahead
       const attachment = await prisma.activityAttachment.create({
@@ -779,7 +779,7 @@ describe('Lookahead Workflow Integration Tests', () => {
     });
 
     it('should approve attachment and promote to master', async () => {
-      const { lookahead, activities } = await setupLookaheadWithActivities();
+      const { activities } = await setupLookaheadWithActivities();
 
       // Create pending attachment
       const attachment = await prisma.activityAttachment.create({
@@ -811,7 +811,7 @@ describe('Lookahead Workflow Integration Tests', () => {
     });
 
     it('should reject attachment with reason', async () => {
-      const { lookahead, activities } = await setupLookaheadWithActivities();
+      const { activities } = await setupLookaheadWithActivities();
 
       // Create pending attachment
       const attachment = await prisma.activityAttachment.create({

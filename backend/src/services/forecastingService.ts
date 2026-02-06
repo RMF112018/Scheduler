@@ -9,7 +9,7 @@
  * - Cost analysis and projections
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { staffService } from './staffService.js';
 
 const prisma = new PrismaClient();

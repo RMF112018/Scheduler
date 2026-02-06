@@ -6,7 +6,7 @@
 
 import { Queue, Worker } from 'bullmq';
 import { redis } from '../../../src/config/redis.js';
-import type { Event, BaseEvent } from '../../../shared/src/events.js';
+import type { Event } from '../../../shared/src/events.js';
 
 /**
  * Create a test event bus queue

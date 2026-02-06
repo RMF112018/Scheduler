@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { webhookService } from '../../src/services/webhookService.js';
-import { eventBus } from '../../src/services/eventBus.js';
+// import { eventBus } from '../../src/services/eventBus.js';
 import { prisma } from '../setup.js';
 import {
   createTestCompany,
@@ -114,7 +114,7 @@ describe('Webhook Integration Tests', () => {
   describe('Webhook Delivery', () => {
     it('should deliver event to subscribed webhook', async () => {
       // Create subscription
-      const subscription = await webhookService.createSubscription({
+      await webhookService.createSubscription({
         companyId: company.id,
         url: 'https://webhook.test.example.com/webhook',
         events: ['approval.completed'],

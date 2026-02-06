@@ -95,22 +95,22 @@ describe('GUID Persistence Round-Trip', () => {
 
   it('should preserve field data across XER round-trip import/export', async () => {
     // Step 1: Import initial XER file
-    const initialXerContent = `ERMHDR	19.12	2024-01-01	Test Project	USD
-
-%T	PROJECT
-%F	proj_id	proj_short_name
-%R	1	TEST	Test Project
-
-%T	TASK
-%F	task_id	task_code	task_name	target_start_date	target_end_date	target_drtn	phys_complete_pct
-%R	1	ACT001	Test Activity	2024-01-01	2024-01-10	10	0
-
-%T	TASKPRED
-%F	task_id	pred_task_id	pred_type	lag_hr_cnt
-`;
+    // const initialXerContent = `ERMHDR	19.12	2024-01-01	Test Project	USD
+    //
+    // %T	PROJECT
+    // %F	proj_id	proj_short_name
+    // %R	1	TEST	Test Project
+    //
+    // %T	TASK
+    // %F	task_id	task_code	task_name	target_start_date	target_end_date	target_drtn	phys_complete_pct
+    // %R	1	ACT001	Test Activity	2024-01-01	2024-01-10	10	0
+    //
+    // %T	TASKPRED
+    // %F	task_id	pred_task_id	pred_type	lag_hr_cnt
+    // `;
 
     // Parse and import XER
-    const { parseXerTables, buildExternalActivities } = await import('../../src/controllers/importController.js');
+    // const { parseXerTables, buildExternalActivities } = await import('../../src/controllers/importController.js');
     // For now, we'll use the importMappingService directly
     const externalActivities = [
       {

@@ -1,6 +1,6 @@
 import { prisma } from '../../../config/database.js';
 import { logger } from '../../../utils/logger.js';
-import { ScheduleActivity, Prisma } from '@prisma/client';
+import { ScheduleActivity } from '@prisma/client';
 
 // ============================================================================
 // Types
@@ -386,9 +386,6 @@ export class ScheduleValidationService {
       // Rule 5: Dangling Activities (start without predecessors or finish without successors)
       if (mergedConfig.enableDanglingActivities) {
         // Check for dangling start (no predecessors but has successors)
-        const hasPredecessors = activity.predecessorIds.length > 0;
-        const hasSuccessors = activity.successorIds.length > 0;
-
         // Only flag if it's not a true start or end activity
         // A true start has no predecessors but has successors
         // A true end has predecessors but no successors

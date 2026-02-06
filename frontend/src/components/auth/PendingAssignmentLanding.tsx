@@ -49,8 +49,9 @@ const PendingAssignmentLanding: React.FC<PendingAssignmentLandingProps> = ({
     } else {
       // Default behavior: send notification to admin
       // This would typically call an API endpoint
-      console.log('Request access clicked');
       // TODO: Implement API call to notify admin
+      // eslint-disable-next-line no-console
+      console.log('Request access clicked');
     }
   };
 

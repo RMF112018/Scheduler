@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventBus } from '../../src/services/eventBus.js';
-import { auditService } from '../../src/services/auditService.js';
+// import { auditService } from '../../src/services/auditService.js';
 import { webhookService } from '../../src/services/webhookService.js';
 import { prisma } from '../setup.js';
 import {
@@ -34,7 +34,7 @@ import {
 } from '../helpers/eventBus.js';
 import {
   verifyAuditLog,
-  getLatestAuditLog,
+  // getLatestAuditLog,
   clearAuditLogs,
 } from '../helpers/auditLog.js';
 import type { ApprovalCompletedEvent, ActivityUpdatedEvent } from '../../../shared/src/events.js';

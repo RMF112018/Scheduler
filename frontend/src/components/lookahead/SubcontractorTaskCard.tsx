@@ -66,7 +66,7 @@ const TOUCH_TARGET_MIN = 44; // pixels (WCAG AAA)
 const BUTTON_SPACING = 8;    // pixels minimum between buttons
 
 // Status colors with high contrast for field environment
-const getStatusColor = (status: 'should_do' | 'will_do' | null, theme: any) => {
+const getStatusColor = (status: 'should_do' | 'will_do' | null, _theme: any) => {
   switch (status) {
     case 'will_do':
       return {

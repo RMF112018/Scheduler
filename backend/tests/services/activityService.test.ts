@@ -389,7 +389,7 @@ describe('ActivityService', () => {
         duration: 5,
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-06'),
@@ -420,7 +420,7 @@ describe('ActivityService', () => {
         percentComplete: 50, // 50% complete = 5 days remaining
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-11'),
@@ -451,7 +451,7 @@ describe('ActivityService', () => {
         percentComplete: 100, // Completed
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-11'),
@@ -485,7 +485,7 @@ describe('ActivityService', () => {
         percentComplete: 50,
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-11'),
@@ -501,7 +501,7 @@ describe('ActivityService', () => {
     });
 
     it('should allow explicit override of retained logic setting', async () => {
-      const actA = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity A',
         startDate: new Date('2024-01-01'),
@@ -526,7 +526,7 @@ describe('ActivityService', () => {
       // Critical path should be A -> C (5 + 5 = 10 days)
       // B should have float (10 - 2 = 8 days)
 
-      const actA = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity A',
         startDate: new Date('2024-01-01'),
@@ -535,7 +535,7 @@ describe('ActivityService', () => {
         percentComplete: 50,
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-01'),
@@ -544,7 +544,7 @@ describe('ActivityService', () => {
         percentComplete: 0,
       });
 
-      const actC = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity C',
         startDate: new Date('2024-01-11'),

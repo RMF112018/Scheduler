@@ -10,7 +10,7 @@
 import { Queue, Worker, Job } from 'bullmq';
 import { redisForBullMQ } from '../config/redis.js';
 import { logger } from '../utils/logger.js';
-import type { BaseEvent, Event, EventType } from '../../../shared/src/events.js';
+import type { Event, EventType } from '../../../shared/src/events.js';
 import { auditService } from './auditService.js';
 import { webhookService } from './webhookService.js';
 

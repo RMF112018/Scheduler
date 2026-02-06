@@ -13,7 +13,6 @@
  */
 
 import { readFileSync } from 'fs';
-import { join } from 'path';
 import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 import { ActivityService } from '../modules/core/services/activityService.js';
