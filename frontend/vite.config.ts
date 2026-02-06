@@ -37,4 +37,10 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  test: {
+    // Use jsdom environment for browser APIs (DOM, IndexedDB via fake-indexeddb)
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./vitest.setup.ts'],
+  },
 });

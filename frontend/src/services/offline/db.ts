@@ -128,6 +128,11 @@ export class OfflineDatabase extends Dexie {
       conflicts: '++id, entityType, entityId, conflictType, detectedAt',
       metadata: 'key',
     });
+
+    // Version 2: Add isOfflineModified index to lookaheads table
+    this.version(2).stores({
+      lookaheads: 'id, projectId, masterScheduleId, syncStatus, lastSyncedAt, isOfflineModified',
+    });
   }
 }
 
