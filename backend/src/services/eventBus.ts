@@ -189,6 +189,13 @@ export class EventBus {
     this.workers.push(webhookWorker);
 
     logger.info(`Started ${this.workers.length} event bus processor(s)`);
+    } catch (error) {
+      logger.error('Failed to start event bus processors:', error);
+      // Clean up any workers that were created before the error (async, don't await)
+      Promise.all(this.workers.map((worker) => worker.close().catch(() => {}))).catch(() => {});
+      this.workers = [];
+      throw error;
+    }
   }
 
   /**
