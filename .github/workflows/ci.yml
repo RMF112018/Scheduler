@@ -58,7 +58,8 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: cd backend && pnpm db:migrate
+      - run: cd backend && pnpm db:generate
+      - run: cd backend && npx prisma migrate deploy
       - run: pnpm test:backend
         env:
           DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler
@@ -119,7 +120,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-      - run: cd backend && pnpm db:migrate
+      - run: cd backend && pnpm db:generate
+      - run: cd backend && npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/scheduler_test
           REDIS_URL: redis://localhost:6379/1

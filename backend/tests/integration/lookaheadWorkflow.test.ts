@@ -15,8 +15,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { prisma } from '../setup.js';
-import { LookaheadService } from '../../src/services/lookaheadService.js';
-import { ScheduleValidationService } from '../../src/services/scheduleValidationService.js';
+import { LookaheadService } from '../../src/modules/core/services/lookaheadService.js';
+import { ScheduleValidationService } from '../../src/modules/core/services/scheduleValidationService.js';
 import {
   createTestCompany,
   createTestUser,

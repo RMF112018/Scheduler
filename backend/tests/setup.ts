@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 // Mock environment variables for testing - MUST be done before PrismaClient instantiation
 vi.stubEnv('NODE_ENV', 'test');
 vi.stubEnv('DATABASE_URL', process.env.DATABASE_URL || 'postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler');
+vi.stubEnv('REDIS_URL', process.env.REDIS_URL || 'redis://localhost:6379');
 vi.stubEnv('JWT_SECRET', 'test-jwt-secret-key-for-testing-purposes-only');
 vi.stubEnv('JWT_EXPIRES_IN', '15m');
 vi.stubEnv('JWT_REFRESH_SECRET', 'test-jwt-refresh-secret-key-for-testing');
@@ -69,6 +70,9 @@ async function cleanDatabase() {
     // Sixth level: User-related tables
     await tx.staffMember.deleteMany();
     await tx.userPermission.deleteMany();
+    // Phase 11: UserRole and ProjectPermission
+    await tx.projectPermission.deleteMany();
+    await tx.userRole.deleteMany();
     await tx.user.deleteMany();
     
     // Seventh level: Role and permission tables

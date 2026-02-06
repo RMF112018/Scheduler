@@ -31,7 +31,6 @@ import {
   InputLabel,
   Alert,
   CircularProgress,
-  Paper,
   Toolbar,
 } from '@mui/material';
 import {
@@ -41,7 +40,7 @@ import {
   Search as SearchIcon,
   PersonAdd as PersonAddIcon,
 } from '@mui/icons-material';
-import { userManagementApi, type User, type Role, type CreateUserInput, type UpdateUserInput } from '@services/api/userManagementApi';
+import { userManagementApi, type User, type Role, type CreateUserInput } from '@services/api/userManagementApi';
 import RoleAssignment from './RoleAssignment';
 import PermissionEditor from './PermissionEditor';
 import BulkImport from './BulkImport';

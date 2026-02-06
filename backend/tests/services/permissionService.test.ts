@@ -5,11 +5,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../setup.js';
 import { permissionService } from '../../../src/services/permissionService.js';
 import { createTestCompany, createTestUser } from '../helpers/testUtils.js';
-
-const prisma = new PrismaClient();
 
 describe('PermissionService', () => {
   let companyId: string;

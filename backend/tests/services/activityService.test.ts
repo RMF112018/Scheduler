@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { prisma } from '../setup';
-import { ActivityService } from '../../src/services/activityService';
+import { prisma } from '../setup.js';
+import { ActivityService } from '../../src/modules/core/services/activityService.js';
 
 const activityService = new ActivityService();
 

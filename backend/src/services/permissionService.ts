@@ -48,24 +48,30 @@ export class PermissionService {
   ): Promise<boolean> {
     const cacheKey = `${this.CACHE_PREFIX}${userId}:${resource}:${action}:${projectId || 'global'}`;
 
-    // Try cache first
+    // Try cache first (if Redis is available)
     try {
       const cached = await redis.get(cacheKey);
       if (cached !== null) {
         return cached === 'true';
       }
     } catch (error) {
-      logger.warn('Redis cache read failed, falling back to database:', error);
+      // Silently fall back to database if Redis is unavailable (common in tests)
+      if (process.env.NODE_ENV !== 'test') {
+        logger.warn('Redis cache read failed, falling back to database:', error);
+      }
     }
 
     // Check database
     const hasPermission = await this._checkPermissionInDb(userId, resource, action, projectId);
 
-    // Cache result
+    // Cache result (if Redis is available)
     try {
       await redis.setex(cacheKey, this.CACHE_TTL, hasPermission ? 'true' : 'false');
     } catch (error) {
-      logger.warn('Redis cache write failed:', error);
+      // Silently ignore cache write failures (common in tests)
+      if (process.env.NODE_ENV !== 'test') {
+        logger.warn('Redis cache write failed:', error);
+      }
     }
 
     return hasPermission;
@@ -433,7 +439,10 @@ export class PermissionService {
         await redis.del(...keys);
       }
     } catch (error) {
-      logger.warn('Failed to invalidate permission cache:', error);
+      // Silently ignore cache invalidation failures (common in tests)
+      if (process.env.NODE_ENV !== 'test') {
+        logger.warn('Failed to invalidate permission cache:', error);
+      }
     }
   }
 }
