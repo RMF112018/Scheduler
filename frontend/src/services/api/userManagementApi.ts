@@ -4,7 +4,7 @@
  * Phase 11: Admin-only user management API client.
  */
 
-import { apiClient } from './client';
+import apiClient from './client';
 
 export interface User {
   id: string;
