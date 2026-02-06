@@ -30,7 +30,7 @@ import {
 
 describe('Lookahead Workflow Integration Tests', () => {
   let lookaheadService: LookaheadService;
-  // let validationService: ScheduleValidationService;
+  let validationService: ScheduleValidationService;
   
   // Test entities
   let company: TestCompany;
@@ -38,7 +38,7 @@ describe('Lookahead Workflow Integration Tests', () => {
   let pmUser: TestUser;         // Project Manager (approver)
   let project: TestProject;
   let masterSchedule: TestSchedule;
-  // let activityIds: string[];
+  let activityIds: string[];
 
   beforeEach(async () => {
     lookaheadService = new LookaheadService();

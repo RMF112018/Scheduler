@@ -17,6 +17,8 @@ describe('LookaheadService', () => {
   let testSchedule: { id: string; name: string; projectId: string; createdBy: string };
   // let activityIds: string[];
 
+  let activityIds: string[];
+
   beforeEach(async () => {
     lookaheadService = new LookaheadService();
     

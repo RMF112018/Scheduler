@@ -17,6 +17,8 @@ describe('ImportMappingService', () => {
   let testSchedule: { id: string; name: string; projectId: string; createdBy: string };
   let _activityIds: string[];
 
+  let activityIds: string[];
+
   beforeEach(async () => {
     importMappingService = new ImportMappingService();
     

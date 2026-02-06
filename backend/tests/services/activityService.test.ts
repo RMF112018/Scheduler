@@ -526,7 +526,7 @@ describe('ActivityService', () => {
       // Critical path should be A -> C (5 + 5 = 10 days)
       // B should have float (10 - 2 = 8 days)
 
-      await activityService.create({
+      const actA = await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity A',
         startDate: new Date('2024-01-01'),
@@ -535,7 +535,7 @@ describe('ActivityService', () => {
         percentComplete: 50,
       });
 
-      await activityService.create({
+      const actB = await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-01'),
@@ -544,7 +544,7 @@ describe('ActivityService', () => {
         percentComplete: 0,
       });
 
-      await activityService.create({
+      const actC = await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity C',
         startDate: new Date('2024-01-11'),

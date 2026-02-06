@@ -21,12 +21,11 @@ describe('P6LogicVerificationService', () => {
 
   beforeAll(async () => {
     // Create test company
-    testCompany = await prisma.company.create({
-      data: {
-        name: 'P6 Verification Test Company',
-        settings: {},
-      },
-    });
+  testCompany = await prisma.company.create({
+    data: {
+      name: 'P6 Verification Test Company',
+    },
+  });
 
     // Create test project with retained logic enabled
     testProject = await prisma.project.create({

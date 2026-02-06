@@ -30,12 +30,11 @@ describe('GUID Persistence Round-Trip', () => {
 
   beforeAll(async () => {
     // Create test company
-    testCompany = await prisma.company.create({
-      data: {
-        name: 'Test Company for GUID Round-Trip',
-        settings: {},
-      },
-    });
+  testCompany = await prisma.company.create({
+    data: {
+      name: 'Test Company for GUID Round-Trip',
+    },
+  });
 
     // Create test user
     testUser = await prisma.user.create({
