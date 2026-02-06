@@ -2,7 +2,7 @@
  * Notification Service Tests
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 
 // Create a test Prisma client

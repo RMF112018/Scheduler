@@ -359,7 +359,7 @@ export class XLSXImportService {
   private validateSampleData(
     sampleData: Record<string, unknown>[],
     mapping: Partial<ColumnMapping>,
-    options: XLSXImportOptions
+    _options: XLSXImportOptions
   ): ValidationError[] {
     const errors: ValidationError[] = [];
 
@@ -678,7 +678,7 @@ export class XLSXImportService {
 
       // Parse format: "ID" or "ID FS" or "ID FS+2" or "ID+2"
       const match = trimmed.match(
-        /^([^\s+\-]+)\s*(FS|FF|SS|SF)?\s*([+-]\d+)?$/i
+        /^([^\s+-]+)\s*(FS|FF|SS|SF)?\s*([+-]\d+)?$/i
       );
 
       if (match) {

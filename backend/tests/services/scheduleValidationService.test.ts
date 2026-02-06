@@ -4,7 +4,7 @@ import { ScheduleValidationService } from '../../src/modules/core/services/sched
 import { ActivityService } from '../../src/modules/core/services/activityService.js';
 
 const validationService = new ScheduleValidationService();
-const activityService = new ActivityService();
+const _activityService = new ActivityService();
 
 describe('ScheduleValidationService', () => {
   let testCompany: { id: string };

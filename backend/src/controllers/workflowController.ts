@@ -7,13 +7,13 @@ import { logger } from '../utils/logger.js';
 import { eventBus } from '../services/eventBus.js';
 import type { ApprovalCompletedEvent, ApprovalRejectedEvent } from '@shared/events';
 
-// Types for attachment approval
-interface AttachmentApprovalDto {
+// Types for attachment approval (currently unused, reserved for future use)
+interface _AttachmentApprovalDto {
   attachmentId: string;
   notes?: string;
 }
 
-interface AttachmentRejectionDto {
+interface _AttachmentRejectionDto {
   attachmentId: string;
   reason: string;
 }

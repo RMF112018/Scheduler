@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { lookaheadService } from '../services/index.js';
 import { notifyLookaheadUpdate, notifyApprovalStatus } from '../services/socketService.js';
-import { NotFoundError } from '../utils/errors.js';
 
 export class LookaheadController {
   /**
@@ -75,7 +74,6 @@ export class LookaheadController {
       const result = await lookaheadService.pullFromMaster(lookaheadId);
 
       // Notify connected clients of the update
-      const lookahead = await lookaheadService.findById(lookaheadId);
       notifyLookaheadUpdate(lookaheadId, {
         type: 'pull_from_master',
         result,

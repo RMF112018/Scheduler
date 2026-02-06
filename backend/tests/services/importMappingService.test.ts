@@ -15,7 +15,7 @@ describe('ImportMappingService', () => {
   let testUser: { id: string; email: string; companyId: string };
   let testProject: { id: string; name: string; companyId: string; createdBy: string };
   let testSchedule: { id: string; name: string; projectId: string; createdBy: string };
-  let activityIds: string[];
+  let _activityIds: string[];
 
   beforeEach(async () => {
     importMappingService = new ImportMappingService();
@@ -446,7 +446,7 @@ describe('ImportMappingService', () => {
       );
 
       // Get the persistent GUID
-      const mapping = await prisma.importMapping.findUnique({
+      const _mapping = await prisma.importMapping.findUnique({
         where: {
           projectId_externalId: {
             projectId: testProject.id,

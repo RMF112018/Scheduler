@@ -110,7 +110,7 @@ async function main() {
   console.log('👥 Creating Phase 11 roles...');
   
   // New User (default for all new accounts)
-  const newUserRole = await prisma.role.create({
+  const _newUserRole = await prisma.role.create({
     data: {
       name: 'new_user',
       description: 'Default role for new users - read-only public content, no project access',
@@ -122,7 +122,7 @@ async function main() {
   });
 
   // Administrator
-  const administratorRole = await prisma.role.create({
+  const _administratorRole = await prisma.role.create({
     data: {
       name: 'administrator',
       description: 'Full access to all administrative functions, user/role/permission management',
@@ -134,7 +134,7 @@ async function main() {
   });
 
   // Subcontractor
-  const subcontractorRolePhase11 = await prisma.role.create({
+  const _subcontractorRolePhase11 = await prisma.role.create({
     data: {
       name: 'subcontractor_phase11',
       description: 'View assigned lookaheads, update task status, upload photos/notes',
@@ -147,7 +147,7 @@ async function main() {
   });
 
   // Superintendent
-  const superintendentRolePhase11 = await prisma.role.create({
+  const _superintendentRolePhase11 = await prisma.role.create({
     data: {
       name: 'superintendent_phase11',
       description: 'Review and approve/reject lookahead commitments, resolve conflicts',
@@ -161,7 +161,7 @@ async function main() {
   });
 
   // Project Manager
-  const projectManagerRolePhase11 = await prisma.role.create({
+  const _projectManagerRolePhase11 = await prisma.role.create({
     data: {
       name: 'project_manager_phase11',
       description: 'Full ownership of master schedules, create/import/update schedules, manage baselines',
@@ -180,7 +180,7 @@ async function main() {
   });
 
   // Project Executive
-  const projectExecutiveRole = await prisma.role.create({
+  const _projectExecutiveRole = await prisma.role.create({
     data: {
       name: 'project_executive',
       description: 'High-level oversight - view dashboards, portfolio health, variance reports',
@@ -194,7 +194,7 @@ async function main() {
   });
 
   // Leadership
-  const leadershipRole = await prisma.role.create({
+  const _leadershipRole = await prisma.role.create({
     data: {
       name: 'leadership',
       description: 'Organization-wide visibility - portfolio health across all projects',
@@ -208,7 +208,7 @@ async function main() {
   });
 
   // 3rd Party
-  const thirdPartyRole = await prisma.role.create({
+  const _thirdPartyRole = await prisma.role.create({
     data: {
       name: 'third_party',
       description: 'View-only access to specific project data (consultant, owner rep, inspector, client)',
@@ -313,7 +313,7 @@ async function main() {
     data: { name: 'Acme Construction Inc.' },
   });
 
-  const buildersPro = await prisma.company.create({
+  const _buildersPro = await prisma.company.create({
     data: { name: 'Builders Pro LLC' },
   });
 
@@ -324,7 +324,7 @@ async function main() {
   const passwordHash = await bcrypt.hash('password123', 12);
 
   // Acme Construction Users
-  const adminUser = await prisma.user.create({
+  const _adminUser = await prisma.user.create({
     data: {
       email: 'admin@acme.com',
       passwordHash,
@@ -480,7 +480,7 @@ async function main() {
     },
   });
 
-  const bridgeProject = await prisma.project.create({
+  const _bridgeProject = await prisma.project.create({
     data: {
       companyId: acmeConstruction.id,
       name: 'Highway 101 Bridge Rehabilitation',
@@ -542,7 +542,7 @@ async function main() {
     },
   });
 
-  const hospitalSchedule = await prisma.schedule.create({
+  const _hospitalSchedule = await prisma.schedule.create({
     data: {
       projectId: hospitalProject.id,
       name: 'Medical Center Expansion - Master Schedule',

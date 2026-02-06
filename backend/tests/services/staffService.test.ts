@@ -12,7 +12,6 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { prisma } from '../setup.js';
 import { StaffService } from '../../src/services/staffService.js';
 import {
   createTestCompany,
@@ -522,7 +521,7 @@ describe('StaffService', () => {
       });
 
       // Create fully available staff
-      const staff1 = await staffService.createStaffMember({
+      const _staff1 = await staffService.createStaffMember({
         companyId: testCompanyId,
         staffRoleId: role.id,
         firstName: 'John',
