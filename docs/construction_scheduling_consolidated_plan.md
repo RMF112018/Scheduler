@@ -278,49 +278,49 @@ todos:
     content: Update README with Flow Editor guide, screenshots, and usage examples
     status: pending
 
-  # Phase 13 - Comprehensive End-to-End Test Suite - PENDING
+  # Phase 13 - Comprehensive End-to-End Test Suite - IN PROGRESS
   - id: phase13-playwright-config
     content: Expand Playwright configuration for full coverage (headed/headless modes, multiple browsers, mobile emulation, staging URL support)
-    status: pending
+    status: completed
   - id: phase13-page-objects
     content: Create comprehensive Page Object Models for all major screens (Login, Dashboard, ScheduleDetail, LookaheadView, ApprovalQueue, CommitConfirmationModal, OfflineSyncIndicator, etc.)
-    status: pending
+    status: completed
   - id: phase13-auth-rbac-tests
     content: Write E2E tests for authentication & RBAC (role-based access violations, least-privilege enforcement, permission boundaries)
-    status: pending
+    status: completed
   - id: phase13-master-schedule-tests
     content: Write E2E tests for master schedule flows (XER import, edit activities, retained logic recalc, out-of-sequence resolution with reason/attachment)
-    status: pending
+    status: completed
   - id: phase13-lookahead-tests
     content: Write E2E tests for lookahead full cycle (pull, edit, conflict detection, commit with modal confirmation + attachments + filtered review, approval with partial attachment gating, merge + evidence promotion)
-    status: pending
+    status: completed
   - id: phase13-offline-sync-tests
     content: Write E2E tests for offline sync (disconnect, edit/commit, reconnect, sync queue, conflict resolution modal)
-    status: pending
+    status: completed
   - id: phase13-export-tests
     content: Write E2E tests for exports (variance view with all summary options, critical path highlighting)
-    status: pending
+    status: completed
   - id: phase13-realtime-tests
     content: Write E2E tests for real-time notifications (event trigger → in-app toast + email)
-    status: pending
+    status: completed
   - id: phase13-usability-tests
     content: Write E2E tests for usability polish (role landings, subtle feedback, tooltips, mobile responsiveness)
-    status: pending
+    status: completed
   - id: phase13-performance-tests
     content: Write E2E performance/smoke tests (large schedule load, no crashes, response time validation)
-    status: pending
+    status: completed
   - id: phase13-visual-regression
     content: Implement visual regression testing (screenshot comparisons against baselines using Playwright's built-in or Percy)
-    status: pending
+    status: completed
   - id: phase13-test-data-factory
     content: Implement test data factory/fixtures for reproducible states (seeded projects, schedules, users)
-    status: pending
+    status: completed
   - id: phase13-ci-integration
     content: Add CI integration (run full E2E suite on push to main or staging branch, with artifact reports)
-    status: pending
+    status: completed
   - id: phase13-test-documentation
     content: Document test suite usage, maintenance, coverage report, and run commands
-    status: pending
+    status: completed
 ---
 
 # Construction Scheduling Application - Consolidated Development Plan
@@ -351,10 +351,10 @@ This document consolidates all development planning for the web-based constructi
 - **Phase 7:** ✅ COMPLETE (Real-time & Notifications)
 - **Phase 8:** ✅ COMPLETE (User Engagement & Usability Polish)
 - **Phase 9:** ✅ COMPLETE (Core Stabilization & ERM Foundation)
-- **Phase 10:** ⏳ PENDING (Beta Readiness & Controlled Launch)
+- **Phase 10:** 🚧 IN PROGRESS (Beta Readiness & Controlled Launch - Core sanity checks complete)
 - **Phase 11:** ⏳ PENDING (Advanced User Management & Procore-Style RBAC)
 - **Phase 12:** ⏳ PENDING (Flow Editor for Visual Lookahead Planning)
-- **Phase 13:** ⏳ PENDING (Comprehensive End-to-End Test Suite)
+- **Phase 13:** ✅ COMPLETE (Comprehensive End-to-End Test Suite)
 
 **Phase 9 Overview:**
 Phase 9 focuses on hardening the MVP for production/beta use while making deliberate architectural modifications to prepare the system as a central data backbone for construction operations. The goal is to enable future modules (cost management, document control, RFIs, daily logs, BIM integration) and partner integrations (Procore, Autodesk, Bluebeam, QuickBooks) without major refactoring. This phase establishes async event-driven communication (BullMQ), comprehensive auditability, and a modular structure that eliminates departmental silos. **Key decisions:** Async-only event bus (Redis pub/sub deferred), shared models with module-specific tables, URL path API versioning.
@@ -2110,7 +2110,7 @@ docs/
 | Phase 10: Beta Readiness & Controlled Launch | 🚧 IN PROGRESS | 4-5 weeks | 3-4 weeks |
 | Phase 11: Advanced User Management & Procore-Style RBAC | ⏳ PENDING | 4-5 weeks | 3-4 weeks |
 | Phase 12: Flow Editor for Visual Lookahead Planning | ⏳ PENDING | 4-6 weeks | 3-4 weeks |
-| Phase 13: Comprehensive End-to-End Test Suite | ⏳ PENDING | 3-5 weeks | 2-3 weeks |
+| Phase 13: Comprehensive End-to-End Test Suite | ✅ COMPLETE | 3-5 weeks | 2-3 weeks |
 | **Total Remaining** | | **14-20 weeks** | **10-14 weeks** |
 
 ### Phase 9 Breakdown
