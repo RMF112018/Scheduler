@@ -11,6 +11,7 @@ import { configurePassport } from './config/passport.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { swaggerSpec } from './config/swagger.js';
+import { getModuleStatus } from './config/modules.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';

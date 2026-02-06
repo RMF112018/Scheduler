@@ -73,13 +73,14 @@ jobs:
           DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test
         run: pnpm prisma migrate deploy
 
-      - name: Build backend
-        working-directory: backend
-        run: pnpm build
+      # Skip build step - E2E tests run against dev server
+      # - name: Build backend
+      #   working-directory: backend
+      #   run: pnpm build
 
-      - name: Build frontend
-        working-directory: frontend
-        run: pnpm build
+      # - name: Build frontend
+      #   working-directory: frontend
+      #   run: pnpm build
 
       - name: Run Tier 1 Smoke Tests
         env:
@@ -164,13 +165,14 @@ jobs:
           DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test
         run: pnpm prisma migrate deploy
 
-      - name: Build backend
-        working-directory: backend
-        run: pnpm build
+      # Skip build step - E2E tests run against dev server
+      # - name: Build backend
+      #   working-directory: backend
+      #   run: pnpm build
 
-      - name: Build frontend
-        working-directory: frontend
-        run: pnpm build
+      # - name: Build frontend
+      #   working-directory: frontend
+      #   run: pnpm build
 
       - name: Run Tier 2 GUID Persistence Tests
         env:
@@ -250,13 +252,14 @@ jobs:
           DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test
         run: pnpm prisma migrate deploy
 
-      - name: Build backend
-        working-directory: backend
-        run: pnpm build
+      # Skip build step - E2E tests run against dev server
+      # - name: Build backend
+      #   working-directory: backend
+      #   run: pnpm build
 
-      - name: Build frontend
-        working-directory: frontend
-        run: pnpm build
+      # - name: Build frontend
+      #   working-directory: frontend
+      #   run: pnpm build
 
       - name: Run Tier 3 Security & Performance Tests
         env:
@@ -336,13 +339,14 @@ jobs:
           DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test
         run: pnpm prisma migrate deploy
 
-      - name: Build backend
-        working-directory: backend
-        run: pnpm build
+      # Skip build step - E2E tests run against dev server
+      # - name: Build backend
+      #   working-directory: backend
+      #   run: pnpm build
 
-      - name: Build frontend
-        working-directory: frontend
-        run: pnpm build
+      # - name: Build frontend
+      #   working-directory: frontend
+      #   run: pnpm build
 
       - name: Run Visual Regression Tests
         env:
