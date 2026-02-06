@@ -8,7 +8,7 @@
  * - Full import with GUID mapping
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { xlsxImportService } from '../../src/services/xlsxImportService.js';
 import {
@@ -16,7 +16,6 @@ import {
   createTestUser,
   createTestProject,
   createTestSchedule,
-  cleanupTestData,
 } from '../helpers/testUtils.js';
 import * as XLSX from 'xlsx';
 

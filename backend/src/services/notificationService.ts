@@ -9,11 +9,11 @@
  * - User notification preferences
  */
 
-import { PrismaClient, Notification, User } from '@prisma/client';
+import { PrismaClient, Notification } from '@prisma/client';
 import { Queue, Worker, Job } from 'bullmq';
 import nodemailer from 'nodemailer';
 import Handlebars from 'handlebars';
-import { notifyCompany, getIO } from './socketService.js';
+import { getIO } from './socketService.js';
 import { logger } from '../utils/logger.js';
 
 const prisma = new PrismaClient();
@@ -743,7 +743,7 @@ export class NotificationService {
   /**
    * Get user's notification preferences
    */
-  async getUserPreferences(userId: string): Promise<UserNotificationPreferences> {
+  async getUserPreferences(_userId: string): Promise<UserNotificationPreferences> {
     // In a real implementation, this would fetch from a user_preferences table
     // For now, return defaults
     return {

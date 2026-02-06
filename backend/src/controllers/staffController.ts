@@ -9,7 +9,7 @@
  * - Availability and allocation queries
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { staffService } from '../services/staffService.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { AppError } from '../utils/errors.js';

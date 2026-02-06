@@ -4,7 +4,7 @@
  * Phase 9: Event types for the async event bus (BullMQ).
  * All events are processed asynchronously with retry and durability.
  */
-export type EventType = 'activity.created' | 'activity.updated' | 'activity.deleted' | 'schedule.created' | 'schedule.updated' | 'schedule.deleted' | 'project.created' | 'project.updated' | 'project.deleted' | 'lookahead.committed' | 'lookahead.approved' | 'lookahead.rejected' | 'approval.completed' | 'approval.rejected' | 'resource.assigned' | 'resource.unassigned' | 'staff.created' | 'staff.updated' | 'staff.deleted' | 'attachment.uploaded' | 'attachment.approved' | 'attachment.rejected';
+export type EventType = 'activity.created' | 'activity.updated' | 'activity.deleted' | 'schedule.created' | 'schedule.updated' | 'schedule.deleted' | 'project.created' | 'project.updated' | 'project.deleted' | 'lookahead.committed' | 'lookahead.approved' | 'lookahead.rejected' | 'approval.completed' | 'approval.rejected' | 'resource.assigned' | 'resource.unassigned' | 'staff.created' | 'staff.updated' | 'staff.deleted' | 'attachment.uploaded' | 'attachment.approved' | 'attachment.rejected' | 'user.created' | 'user.updated' | 'user.deleted' | 'role.assigned' | 'role.removed' | 'permission.granted' | 'permission.revoked';
 export interface BaseEvent {
     type: EventType;
     entityId: string;
@@ -81,5 +81,46 @@ export interface ResourceUnassignedEvent extends BaseEvent {
     activityId: string;
     staffMemberId: string;
 }
-export type Event = ActivityCreatedEvent | ActivityUpdatedEvent | ActivityDeletedEvent | ScheduleCreatedEvent | ScheduleUpdatedEvent | ProjectUpdatedEvent | LookaheadCommittedEvent | ApprovalCompletedEvent | ApprovalRejectedEvent | ResourceAssignedEvent | ResourceUnassignedEvent | BaseEvent;
+export interface UserCreatedEvent extends BaseEvent {
+    type: 'user.created';
+    userEmail: string;
+    userName: string;
+    defaultRoleId?: string;
+}
+export interface UserUpdatedEvent extends BaseEvent {
+    type: 'user.updated';
+    changes: Record<string, {
+        old: unknown;
+        new: unknown;
+    }>;
+}
+export interface UserDeletedEvent extends BaseEvent {
+    type: 'user.deleted';
+    userEmail: string;
+    userName: string;
+}
+export interface RoleAssignedEvent extends BaseEvent {
+    type: 'role.assigned';
+    roleId: string;
+    roleName: string;
+    projectId?: string | null;
+}
+export interface RoleRemovedEvent extends BaseEvent {
+    type: 'role.removed';
+    roleId: string;
+    roleName: string;
+    projectId?: string | null;
+}
+export interface PermissionGrantedEvent extends BaseEvent {
+    type: 'permission.granted';
+    permission: string;
+    projectId: string;
+    granted: boolean;
+}
+export interface PermissionRevokedEvent extends BaseEvent {
+    type: 'permission.revoked';
+    permission: string;
+    projectId: string;
+}
+export type Event = ActivityCreatedEvent | ActivityUpdatedEvent | ActivityDeletedEvent | ScheduleCreatedEvent | ScheduleUpdatedEvent | ProjectUpdatedEvent | LookaheadCommittedEvent | ApprovalCompletedEvent | ApprovalRejectedEvent | ResourceAssignedEvent | ResourceUnassignedEvent | UserCreatedEvent | UserUpdatedEvent | UserDeletedEvent | RoleAssignedEvent | RoleRemovedEvent | PermissionGrantedEvent | PermissionRevokedEvent | BaseEvent;
 //# sourceMappingURL=events.d.ts.map

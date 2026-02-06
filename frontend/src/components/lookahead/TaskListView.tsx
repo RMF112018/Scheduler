@@ -191,12 +191,13 @@ const TaskListView: React.FC<TaskListViewProps> = ({
         case 'percentComplete':
           comparison = a.percentComplete - b.percentComplete;
           break;
-        case 'status':
+        case 'status': {
           const statusOrder = { will_do: 0, should_do: 1, null: 2 };
           const aOrder = statusOrder[a.plannerStatus || 'null'] ?? 2;
           const bOrder = statusOrder[b.plannerStatus || 'null'] ?? 2;
           comparison = aOrder - bOrder;
           break;
+        }
       }
 
       return sortDirection === 'asc' ? comparison : -comparison;

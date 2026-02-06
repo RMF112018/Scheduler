@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { prisma } from '../setup.js';
-import { LookaheadService } from '../../src/services/lookaheadService.js';
+import { LookaheadService } from '../../src/modules/core/services/lookaheadService.js';
 import {
   createTestCompany,
   createTestUser,
@@ -170,7 +170,7 @@ describe('LookaheadService', () => {
       });
 
       // Second pull should not overwrite will_do activity
-      const result = await lookaheadService.pullFromMaster(lookahead.id);
+      const _result = await lookaheadService.pullFromMaster(lookahead.id);
 
       // Verify the activity was not updated
       const activityAfterPull = await prisma.lookaheadActivity.findUnique({

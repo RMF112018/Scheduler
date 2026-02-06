@@ -1,5 +1,8 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '@store/index';
+import { getCurrentUser } from '@store/slices/authSlice';
 
 // Layout components
 import Layout from '@components/common/Layout';
@@ -13,12 +16,29 @@ import LookaheadList from '@components/lookahead/LookaheadList';
 import LookaheadView from '@components/lookahead/LookaheadView';
 import Login from '@components/common/Login';
 import Register from '@components/common/Register';
+import Settings from '@components/settings/Settings';
 import NotFound from '@components/common/NotFound';
+import { UserManagementView } from '@components/admin';
+import PendingAssignmentLanding from '@components/auth/PendingAssignmentLanding';
 
 // Auth wrapper
 import ProtectedRoute from '@components/common/ProtectedRoute';
+import AdminRoute from '@components/common/AdminRoute';
 
 function App() {
+  const dispatch = useAppDispatch();
+  const location = useLocation();
+  const { token, isAuthenticated, loading } = useAppSelector((state) => state.auth);
+
+  // Validate token on app startup if token exists
+  // Skip validation on login/register pages to prevent auto-login issues
+  useEffect(() => {
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+    if (token && !isAuthenticated && !loading && !isAuthPage) {
+      dispatch(getCurrentUser());
+    }
+  }, [token, isAuthenticated, loading, location.pathname, dispatch]);
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Routes>
@@ -28,6 +48,9 @@ function App() {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
+          {/* Pending assignment route (no layout) */}
+          <Route path="/pending-assignment" element={<PendingAssignmentLanding />} />
+          
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/schedules" element={<ScheduleList />} />
@@ -35,6 +58,13 @@ function App() {
             <Route path="/schedules/:scheduleId" element={<ScheduleDetail />} />
             <Route path="/lookahead" element={<LookaheadList />} />
             <Route path="/lookahead/:lookaheadId" element={<LookaheadView />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+          {/* Admin routes */}
+          <Route element={<AdminRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/admin/users" element={<UserManagementView />} />
+            </Route>
           </Route>
         </Route>
 

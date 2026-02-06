@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ScheduleController } from '../controllers/scheduleController.js';
-import { authenticate, requireProjectPermission } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { z } from 'zod';
 

@@ -27,6 +27,8 @@ async function main() {
   await prisma.userPermission.deleteMany();
   await prisma.rolePermission.deleteMany();
   await prisma.permission.deleteMany();
+  await prisma.projectPermission.deleteMany(); // Phase 11
+  await prisma.userRole.deleteMany(); // Phase 11
   await prisma.role.deleteMany();
   await prisma.user.deleteMany();
   await prisma.company.deleteMany();
@@ -100,6 +102,122 @@ async function main() {
 
   const viewerRole = await prisma.role.create({
     data: { name: 'viewer', description: 'Read-only access to schedules' },
+  });
+
+  // ============================================================================
+  // Phase 11: Create Advanced User Management Roles
+  // ============================================================================
+  console.log('👥 Creating Phase 11 roles...');
+  
+  // New User (default for all new accounts)
+  const _newUserRole = await prisma.role.create({
+    data: {
+      name: 'new_user',
+      description: 'Default role for new users - read-only public content, no project access',
+      isSystem: true,
+      defaultPermissions: {
+        // No permissions - read-only public content only
+      },
+    },
+  });
+
+  // Administrator
+  const _administratorRole = await prisma.role.create({
+    data: {
+      name: 'administrator',
+      description: 'Full access to all administrative functions, user/role/permission management',
+      isSystem: true,
+      defaultPermissions: {
+        '*': ['*'], // All resources, all actions
+      },
+    },
+  });
+
+  // Subcontractor
+  const _subcontractorRolePhase11 = await prisma.role.create({
+    data: {
+      name: 'subcontractor_phase11',
+      description: 'View assigned lookaheads, update task status, upload photos/notes',
+      isSystem: true,
+      defaultPermissions: {
+        lookahead: ['read', 'update'],
+        activity: ['read'],
+      },
+    },
+  });
+
+  // Superintendent
+  const _superintendentRolePhase11 = await prisma.role.create({
+    data: {
+      name: 'superintendent_phase11',
+      description: 'Review and approve/reject lookahead commitments, resolve conflicts',
+      isSystem: true,
+      defaultPermissions: {
+        lookahead: ['read', 'update', 'approve', 'reject'],
+        activity: ['read', 'update'],
+        workflow: ['approve', 'reject'],
+      },
+    },
+  });
+
+  // Project Manager
+  const _projectManagerRolePhase11 = await prisma.role.create({
+    data: {
+      name: 'project_manager_phase11',
+      description: 'Full ownership of master schedules, create/import/update schedules, manage baselines',
+      isSystem: true,
+      defaultPermissions: {
+        project: ['read', 'write'],
+        schedule: ['read', 'write', 'create', 'delete'],
+        activity: ['read', 'write', 'create', 'delete'],
+        lookahead: ['read', 'write', 'approve', 'reject'],
+        workflow: ['approve', 'reject'],
+        import: ['execute'],
+        export: ['execute'],
+        dashboard: ['view'],
+      },
+    },
+  });
+
+  // Project Executive
+  const _projectExecutiveRole = await prisma.role.create({
+    data: {
+      name: 'project_executive',
+      description: 'High-level oversight - view dashboards, portfolio health, variance reports',
+      isSystem: true,
+      defaultPermissions: {
+        dashboard: ['view'],
+        report: ['read'],
+        project: ['read'],
+      },
+    },
+  });
+
+  // Leadership
+  const _leadershipRole = await prisma.role.create({
+    data: {
+      name: 'leadership',
+      description: 'Organization-wide visibility - portfolio health across all projects',
+      isSystem: true,
+      defaultPermissions: {
+        dashboard: ['view'],
+        report: ['read'],
+        portfolio: ['view'],
+      },
+    },
+  });
+
+  // 3rd Party
+  const _thirdPartyRole = await prisma.role.create({
+    data: {
+      name: 'third_party',
+      description: 'View-only access to specific project data (consultant, owner rep, inspector, client)',
+      isSystem: true,
+      defaultPermissions: {
+        project: ['read'],
+        report: ['read'],
+      },
+    },
   });
 
   // ============================================================================
@@ -195,7 +313,7 @@ async function main() {
     data: { name: 'Acme Construction Inc.' },
   });
 
-  const buildersPro = await prisma.company.create({
+  const _buildersPro = await prisma.company.create({
     data: { name: 'Builders Pro LLC' },
   });
 
@@ -206,7 +324,7 @@ async function main() {
   const passwordHash = await bcrypt.hash('password123', 12);
 
   // Acme Construction Users
-  const adminUser = await prisma.user.create({
+  const _adminUser = await prisma.user.create({
     data: {
       email: 'admin@acme.com',
       passwordHash,
@@ -362,7 +480,7 @@ async function main() {
     },
   });
 
-  const bridgeProject = await prisma.project.create({
+  const _bridgeProject = await prisma.project.create({
     data: {
       companyId: acmeConstruction.id,
       name: 'Highway 101 Bridge Rehabilitation',
@@ -424,7 +542,7 @@ async function main() {
     },
   });
 
-  const hospitalSchedule = await prisma.schedule.create({
+  const _hospitalSchedule = await prisma.schedule.create({
     data: {
       projectId: hospitalProject.id,
       name: 'Medical Center Expansion - Master Schedule',

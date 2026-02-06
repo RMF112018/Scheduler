@@ -5,8 +5,12 @@ import { initializeSocketIO } from './services/socketService.js';
 import { prisma } from './config/database.js';
 import { logger } from './utils/logger.js';
 import { eventBus } from './services/eventBus.js';
+import { setupInsights, flushInsights } from './config/insights.js';
 
 const PORT = process.env.PORT || 4000;
+
+// Initialize Application Insights (must be before server creation)
+setupInsights();
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -31,6 +35,9 @@ const shutdown = async () => {
     // Disconnect Prisma
     await prisma.$disconnect();
     logger.info('Database connection closed');
+    
+    // Flush Application Insights telemetry
+    await flushInsights();
     
     process.exit(0);
   });

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError, ValidationError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+import { trackException } from '../config/insights.js';
 
 interface ErrorResponse {
   success: false;
@@ -12,12 +13,20 @@ interface ErrorResponse {
 
 export function errorHandler(
   err: Error,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ): void {
   // Log error
   logger.error(`Error: ${err.message}`, err.stack);
+
+  // Track exception in Application Insights
+  trackException(err, {
+    method: req.method,
+    path: req.path,
+    statusCode: err instanceof AppError ? err.statusCode.toString() : '500',
+    userAgent: req.get('user-agent') || 'unknown',
+  });
 
   // Default error response
   const response: ErrorResponse = {

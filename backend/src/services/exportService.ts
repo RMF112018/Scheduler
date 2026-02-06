@@ -10,7 +10,6 @@
 import * as XLSX from 'xlsx';
 import PDFDocument from 'pdfkit';
 import { PrismaClient, ScheduleActivity, Schedule, ScheduleBaseline } from '@prisma/client';
-import { Readable } from 'stream';
 
 const prisma = new PrismaClient();
 

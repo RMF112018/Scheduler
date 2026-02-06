@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { prisma } from '../setup';
-import { ActivityService } from '../../src/services/activityService';
+import { prisma } from '../setup.js';
+import { ActivityService } from '../../src/modules/core/services/activityService.js';
 
 const activityService = new ActivityService();
 
@@ -389,7 +389,7 @@ describe('ActivityService', () => {
         duration: 5,
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-06'),
@@ -420,7 +420,7 @@ describe('ActivityService', () => {
         percentComplete: 50, // 50% complete = 5 days remaining
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-11'),
@@ -451,7 +451,7 @@ describe('ActivityService', () => {
         percentComplete: 100, // Completed
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-11'),
@@ -485,7 +485,7 @@ describe('ActivityService', () => {
         percentComplete: 50,
       });
 
-      const actB = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity B',
         startDate: new Date('2024-01-11'),
@@ -501,7 +501,7 @@ describe('ActivityService', () => {
     });
 
     it('should allow explicit override of retained logic setting', async () => {
-      const actA = await activityService.create({
+      await activityService.create({
         scheduleId: testSchedule.id,
         name: 'Activity A',
         startDate: new Date('2024-01-01'),

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { prisma } from '../setup.js';
-import { ImportMappingService } from '../../src/services/importMappingService.js';
+import { ImportMappingService } from '../../src/modules/core/services/importMappingService.js';
 import {
   createTestCompany,
   createTestUser,
@@ -446,7 +446,7 @@ describe('ImportMappingService', () => {
       );
 
       // Get the persistent GUID
-      const mapping = await prisma.importMapping.findUnique({
+      const _mapping = await prisma.importMapping.findUnique({
         where: {
           projectId_externalId: {
             projectId: testProject.id,

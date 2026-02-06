@@ -149,7 +149,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         case 'server':
           await resolveConflictKeepServer(currentConflict.id);
           break;
-        case 'merge':
+        case 'merge': {
           const mergedValue: Record<string, unknown> = {};
           conflictingFields.forEach((field) => {
             const source = fieldSelections[field.key] || 'local';
@@ -158,6 +158,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
           });
           await resolveConflictMerge(currentConflict.id, mergedValue);
           break;
+        }
       }
 
       // Move to next conflict or close

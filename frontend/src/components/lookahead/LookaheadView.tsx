@@ -94,9 +94,8 @@ const LookaheadView: React.FC = () => {
     }
   };
 
-  const handleActivityClick = (activityId: string) => {
+  const handleActivityClick = (_activityId: string) => {
     // TODO: Navigate to activity detail or open activity modal
-    console.log('Activity clicked:', activityId);
   };
 
   const handleRefreshConflicts = () => {
@@ -105,9 +104,8 @@ const LookaheadView: React.FC = () => {
     }
   };
 
-  const handleCommit = (attachments: Array<{ type: string; file?: File; note?: string }>) => {
+  const handleCommit = (_attachments: Array<{ type: string; file?: File; note?: string }>) => {
     // TODO: Implement commit with attachments
-    console.log('Committing with attachments:', attachments);
     setCommitModalOpen(false);
   };
 

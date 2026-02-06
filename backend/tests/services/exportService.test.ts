@@ -8,7 +8,7 @@
  * - Data formatting
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { exportService } from '../../src/services/exportService.js';
 import {
@@ -16,7 +16,6 @@ import {
   createTestUser,
   createTestProject,
   createTestSchedule,
-  cleanupTestData,
 } from '../helpers/testUtils.js';
 import * as XLSX from 'xlsx';
 

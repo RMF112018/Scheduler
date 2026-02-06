@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { prisma } from '../setup';
-import { ScheduleValidationService } from '../../src/services/scheduleValidationService';
-import { ActivityService } from '../../src/services/activityService';
+import { prisma } from '../setup.js';
+import { ScheduleValidationService } from '../../src/modules/core/services/scheduleValidationService.js';
+import { ActivityService } from '../../src/modules/core/services/activityService.js';
 
 const validationService = new ScheduleValidationService();
-const activityService = new ActivityService();
+const _activityService = new ActivityService();
 
 describe('ScheduleValidationService', () => {
   let testCompany: { id: string };

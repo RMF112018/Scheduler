@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, phase-10-beta-readiness]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: scheduler
+          POSTGRES_PASSWORD: scheduler_dev_password
+          POSTGRES_DB: scheduler
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    env:
+      # Database connection string for Prisma schema validation and migrations
+      DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: test-jwt-secret-key
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: cd backend && pnpm db:generate
+      - run: cd backend && npx prisma migrate deploy
+      - run: pnpm test:backend
+
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:frontend
+
+  test-e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: scheduler_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    env:
+      # Database connection string for Prisma schema validation and migrations
+      DATABASE_URL: postgresql://user:password@localhost:5432/scheduler_test
+      REDIS_URL: redis://localhost:6379/1
+      JWT_SECRET: test-jwt-secret-key
+      NODE_ENV: test
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      # Upgraded to Node.js 20 (LTS) for Azure SDK compatibility (@azure/core-auth@1.1.0 requires >=20.0.0)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - run: cd backend && pnpm db:generate
+      - run: cd backend && npx prisma migrate deploy
+      - run: pnpm test:e2e
+        env:
+          # E2E tests may use different env var names for test isolation
+          TEST_DATABASE_URL: postgresql://user:password@localhost:5432/scheduler_test
+          TEST_REDIS_URL: redis://localhost:6379/1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30

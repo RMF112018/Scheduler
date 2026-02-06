@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Box, AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { Menu as MenuIcon, Dashboard as DashboardIcon, Schedule as ScheduleIcon, CalendarMonth as CalendarIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import { Menu as MenuIcon, Dashboard as DashboardIcon, Schedule as ScheduleIcon, CalendarMonth as CalendarIcon, Settings as SettingsIcon, People as PeopleIcon } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@store/index';
 import { toggleSidebar } from '@store/slices/uiSlice';
@@ -97,10 +97,44 @@ const Layout: React.FC = () => {
           </List>
           <Divider sx={{ my: 2 }} />
           <List>
+            {user?.role === 'admin' || user?.role === 'administrator' ? (
+              <ListItem
+                button
+                onClick={() => navigate('/admin/users')}
+                selected={location.pathname === '/admin/users'}
+                sx={{
+                  mx: 1,
+                  borderRadius: 1,
+                  '&.Mui-selected': {
+                    bgcolor: 'primary.light',
+                    color: 'primary.contrastText',
+                    '& .MuiListItemIcon-root': {
+                      color: 'primary.contrastText',
+                    },
+                  },
+                }}
+              >
+                <ListItemIcon>
+                  <PeopleIcon />
+                </ListItemIcon>
+                <ListItemText primary="User Management" />
+              </ListItem>
+            ) : null}
             <ListItem
               button
               onClick={() => navigate('/settings')}
-              sx={{ mx: 1, borderRadius: 1 }}
+              selected={location.pathname === '/settings'}
+              sx={{
+                mx: 1,
+                borderRadius: 1,
+                '&.Mui-selected': {
+                  bgcolor: 'primary.light',
+                  color: 'primary.contrastText',
+                  '& .MuiListItemIcon-root': {
+                    color: 'primary.contrastText',
+                  },
+                },
+              }}
             >
               <ListItemIcon>
                 <SettingsIcon />

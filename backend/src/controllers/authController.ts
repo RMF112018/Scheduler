@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../config/database.js';
 import { generateAccessToken, generateRefreshToken, verifyToken } from '../utils/jwt.js';
 import { BadRequestError, UnauthorizedError } from '../utils/errors.js';
+import { permissionService } from '../services/permissionService.js';
+import { eventBus } from '../services/eventBus.js';
+import type { UserCreatedEvent, RoleAssignedEvent } from '../../../shared/src/events.js';
 
 export class AuthController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -80,6 +83,12 @@ export class AuthController {
         throw new BadRequestError('Company ID or Company Name is required');
       }
 
+      // Check if this is the first user in the company
+      const existingUsers = await prisma.user.count({
+        where: { companyId: finalCompanyId },
+      });
+      const isFirstUser = existingUsers === 0;
+
       // Create user
       const user = await prisma.user.create({
         data: {
@@ -87,10 +96,62 @@ export class AuthController {
           passwordHash,
           firstName,
           lastName,
-          role: 'admin', // First user in a company is admin
+          role: isFirstUser ? 'admin' : 'user', // First user is admin, others are regular users
           companyId: finalCompanyId,
         },
       });
+
+      // Phase 11: Assign role (admin for first user, "New User" for others)
+      let roleId: string | undefined;
+      if (isFirstUser) {
+        // First user gets administrator role
+        const adminRole = await prisma.role.findUnique({
+          where: { name: 'administrator' },
+        });
+        if (adminRole) {
+          roleId = adminRole.id;
+          await permissionService.assignRole(user.id, adminRole.id, null, user.id);
+        }
+      } else {
+        // Other users get "New User" role
+        const newUserRole = await prisma.role.findUnique({
+          where: { name: 'new_user' },
+        });
+        if (newUserRole) {
+          roleId = newUserRole.id;
+          await permissionService.assignRole(user.id, newUserRole.id, null, user.id);
+        }
+      }
+
+      // Publish events
+      if (roleId) {
+        const role = await prisma.role.findUnique({ where: { id: roleId } });
+        if (role) {
+          await eventBus.publish({
+            type: 'role.assigned',
+            entityId: user.id,
+            entityType: 'User',
+            userId: user.id,
+            companyId: finalCompanyId,
+            timestamp: new Date(),
+            roleId,
+            roleName: role.name,
+            projectId: null,
+          } as RoleAssignedEvent);
+        }
+      }
+
+      await eventBus.publish({
+        type: 'user.created',
+        entityId: user.id,
+        entityType: 'User',
+        userId: user.id,
+        companyId: finalCompanyId,
+        timestamp: new Date(),
+        userEmail: user.email,
+        userName: `${user.firstName} ${user.lastName}`,
+        defaultRoleId: roleId,
+      } as UserCreatedEvent);
 
       const tokenPayload = {
         sub: user.id,

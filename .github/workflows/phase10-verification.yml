@@ -1,0 +1,171 @@
+name: Phase 10 Verification Tests
+
+on:
+  push:
+    branches: [main, phase-10-beta-readiness]
+  pull_request:
+    branches: [main, phase-10-beta-readiness]
+  workflow_dispatch:
+
+jobs:
+  p6-verification:
+    name: P6 Logic Verification
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: scheduler
+          POSTGRES_PASSWORD: scheduler_dev_password
+          POSTGRES_DB: scheduler
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: pnpm prisma generate
+      
+      - name: Run database migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler
+        run: pnpm prisma migrate deploy
+      
+      - name: Run P6 Verification Test
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key
+          NODE_ENV: test
+        run: pnpm test p6LogicVerificationService
+      
+      - name: Run GUID Persistence Test
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key
+          NODE_ENV: test
+        run: pnpm test guidPersistence
+
+  e2e-tests:
+    name: E2E Critical Paths
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: scheduler
+          POSTGRES_PASSWORD: scheduler_dev_password
+          POSTGRES_DB: scheduler_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: pnpm prisma generate
+      
+      - name: Run database migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test
+        run: pnpm prisma migrate deploy
+      
+      # E2E tests run against dev servers (started by Playwright webServer config)
+      # No build step needed - Playwright will start the servers automatically
+      
+      - name: Run E2E tests
+        env:
+          DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key
+          TEST_DATABASE_URL: postgresql://scheduler:scheduler_dev_password@localhost:5432/scheduler_test
+          TEST_REDIS_URL: redis://localhost:6379/1
+        run: pnpm exec playwright test --project=chromium
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  verify-all:
+    name: Verify All Phase 10 Tests
+    runs-on: ubuntu-latest
+    needs: [p6-verification, e2e-tests]
+    
+    steps:
+      - name: All verification tests passed
+        run: echo "✅ All Phase 10 verification tests passed"

@@ -18,6 +18,8 @@
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
+    "@microsoft/applicationinsights-react-js": "^19.3.8",
+    "@microsoft/applicationinsights-web": "^3.3.11",
     "@mui/icons-material": "^5.15.12",
     "@mui/material": "^5.15.12",
     "@mui/x-date-pickers": "^7.0.0",
@@ -48,6 +50,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^24.0.0",
     "msw": "^2.2.2",
     "prettier": "^3.2.5",

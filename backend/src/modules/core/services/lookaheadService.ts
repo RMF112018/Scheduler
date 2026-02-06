@@ -333,7 +333,7 @@ export class LookaheadService {
     // Check for conflicts when marking as "will_do"
     let conflicts: Conflict[] = [];
     if (status === 'will_do') {
-      const lookahead = await this.findById(lookaheadId);
+      const _lookahead = await this.findById(lookaheadId);
       conflicts = await this.detectConflicts(lookaheadId, activityId);
 
       if (conflicts.length > 0) {
@@ -773,7 +773,7 @@ export class LookaheadService {
 
       for (const assignment of assignments) {
         const resourceId = assignment.staffMemberId;
-        const resourceName = `${assignment.staffMember.firstName} ${assignment.staffMember.lastName}`;
+        const _resourceName = `${assignment.staffMember.firstName} ${assignment.staffMember.lastName}`;
         const totalHours = assignment.hoursAllocated ? Number(assignment.hoursAllocated) : 8 * durationDays;
         const dailyHours = totalHours / durationDays;
 
@@ -1006,7 +1006,7 @@ export class LookaheadService {
   private async detectActivityConflicts(
     lookaheadActivity: LookaheadActivity,
     masterActivity: ScheduleActivity,
-    masterScheduleId: string
+    _masterScheduleId: string
   ): Promise<Conflict[]> {
     const conflicts: Conflict[] = [];
 

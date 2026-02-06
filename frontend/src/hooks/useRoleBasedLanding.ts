@@ -15,7 +15,8 @@ export type UserRole =
   | 'scheduler'
   | 'field_crew'
   | 'subcontractor'
-  | 'viewer';
+  | 'viewer'
+  | 'new_user';
 
 // ============================================
 // Route Configuration by Role
@@ -28,6 +29,13 @@ interface RoleRouteConfig {
 }
 
 const roleRouteMap: Record<UserRole, RoleRouteConfig> = {
+  // New users - pending assignment
+  new_user: {
+    defaultRoute: '/pending-assignment',
+    label: 'Pending Assignment',
+    description: 'Waiting for administrator to assign you to a project',
+  },
+
   // Field users - mobile-first lookahead
   field_crew: {
     defaultRoute: '/lookahead/today',

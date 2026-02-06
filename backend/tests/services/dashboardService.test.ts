@@ -8,7 +8,7 @@
  * - Critical delays
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { dashboardService } from '../../src/services/dashboardService.js';
 import {
@@ -16,7 +16,7 @@ import {
   createTestUser,
   createTestProject,
   createTestSchedule,
-  cleanupTestData,
+  // cleanupTestData,
 } from '../helpers/testUtils.js';
 
 const prisma = new PrismaClient();

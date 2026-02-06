@@ -25,9 +25,10 @@ const registerSchema = z.object({
   { message: 'Either companyId or companyName is required' }
 );
 
-const refreshSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required'),
-});
+// Refresh token schema - reserved for future use
+// const refreshSchema = z.object({
+//   refreshToken: z.string().min(1, 'Refresh token is required'),
+// });
 
 /**
  * @swagger

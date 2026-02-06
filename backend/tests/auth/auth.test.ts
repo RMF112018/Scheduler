@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import express from 'express';
 import cors from 'cors';
 import passport from 'passport';
-import { prisma } from '../setup';
+import { prisma } from '../setup.js';
 import authRoutes from '../../src/routes/authRoutes.js';
 import { errorHandler } from '../../src/middleware/errorHandler.js';
 import { configurePassport } from '../../src/config/passport.js';

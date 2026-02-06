@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -11,6 +11,7 @@ import { configurePassport } from './config/passport.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { swaggerSpec } from './config/swagger.js';
+import { getModuleStatus } from './config/modules.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -28,6 +29,7 @@ import forecastingRoutes from './routes/forecastingRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
 import webhookRoutes from './routes/webhookRoutes.js';
+import userManagementRoutes from './routes/userManagementRoutes.js';
 
 const app: Application = express();
 
@@ -106,6 +108,7 @@ app.use('/api/v1/forecasts', forecastingRoutes);
 app.use('/api/v1', commentRoutes); // Comments are nested under activities and projects
 app.use('/api/v1/audit', auditRoutes);
 app.use('/api/v1/webhooks', webhookRoutes);
+app.use('/api/v1/admin', userManagementRoutes); // Phase 11: Admin-only user management
 
 // Error handling
 app.use(notFoundHandler);

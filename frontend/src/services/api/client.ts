@@ -1,8 +1,9 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { clearAuthTokens } from '@utils/auth';
 
 // Get API URL from environment or use default
 // @ts-expect-error - Vite provides import.meta.env at runtime
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -57,8 +58,7 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed - logout user
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+        clearAuthTokens();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
