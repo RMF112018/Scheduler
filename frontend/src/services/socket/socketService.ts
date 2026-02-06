@@ -75,7 +75,7 @@ class SocketService {
    */
   connect(token: string): void {
     if (this.socket?.connected) {
-      console.log('Socket already connected');
+      // Socket already connected, skip reconnection
       return;
     }
     // @ts-expect-error - Vite env types
@@ -199,7 +199,6 @@ class SocketService {
 
     // If socket is connected, add the listener
     if (this.socket) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.socket.on(event, callback as any);
     }
 
@@ -219,7 +218,6 @@ class SocketService {
     }
 
     if (this.socket) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.socket.off(event, callback as any);
     }
   }
@@ -229,7 +227,6 @@ class SocketService {
    */
   once<T extends SocketEventType>(event: T, callback: EventCallback<T>): void {
     if (this.socket) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.socket.once(event, callback as any);
     }
   }
@@ -281,7 +278,6 @@ class SocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('Socket connected:', this.socket?.id);
       this.reconnectAttempts = 0;
 
       // Re-join rooms after reconnection
@@ -310,8 +306,7 @@ class SocketService {
       }
     });
 
-    this.socket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
+    this.socket.on('disconnect', () => {
 
       const disconnectListeners = this.eventListeners.get('disconnect');
       if (disconnectListeners) {

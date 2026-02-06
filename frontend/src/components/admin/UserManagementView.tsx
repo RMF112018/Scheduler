@@ -4,7 +4,7 @@
  * Phase 11: Admin-only user management interface.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -73,12 +73,7 @@ const UserManagementView: React.FC = () => {
     lastName: '',
   });
 
-  // Load users and roles
-  useEffect(() => {
-    loadData();
-  }, [page, limit, searchEmail, searchFirstName, searchLastName, selectedRole]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [usersResult, rolesResult] = await Promise.all([
@@ -101,7 +96,12 @@ const UserManagementView: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, searchEmail, searchFirstName, searchLastName, selectedRole]);
+
+  // Load users and roles
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateUser = async () => {
     try {

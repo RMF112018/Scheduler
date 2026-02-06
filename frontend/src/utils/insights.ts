@@ -23,7 +23,7 @@ export function setupInsights(): void {
 
   // Only enable in production or staging
   if (mode !== 'production' && mode !== 'staging') {
-    console.info('Application Insights disabled (development mode)');
+    // Application Insights disabled in development mode
     return;
   }
 
@@ -67,8 +67,6 @@ export function setupInsights(): void {
 
     // Track initial page view
     appInsights.trackPageView();
-
-    console.info('Application Insights initialized successfully');
   } catch (error) {
     console.error('Failed to initialize Application Insights:', error);
     // Don't throw - allow app to continue without monitoring

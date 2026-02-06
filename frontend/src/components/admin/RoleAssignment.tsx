@@ -4,7 +4,7 @@
  * Phase 11: Assign/remove roles for users with optional project scoping.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -42,30 +42,30 @@ const RoleAssignment: React.FC<RoleAssignmentProps> = ({ open, onClose, user, ro
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open && user) {
-      loadUserRoles();
-      loadProjects();
-    }
-  }, [open, user]);
-
-  const loadUserRoles = async () => {
+  const loadUserRoles = useCallback(async () => {
     try {
       const userData = await userManagementApi.getUser(user.id);
       setUserRoles(userData.roles || []);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load user roles');
     }
-  };
+  }, [user.id]);
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       const projectsData = await projectApi.getProjects();
       setProjects(projectsData.map((p) => ({ id: p.id, name: p.name })));
     } catch (err: any) {
       // Ignore project loading errors
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (open && user) {
+      loadUserRoles();
+      loadProjects();
+    }
+  }, [open, user, loadUserRoles, loadProjects]);
 
   const handleAssignRole = async () => {
     if (!selectedRoleId) return;

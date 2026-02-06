@@ -4,7 +4,7 @@
  * Phase 11: Granular permission editor for users with project scoping.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -48,25 +48,16 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({ open, onClose, user
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open && user) {
-      loadProjects();
-      if (selectedProjectId) {
-        loadPermissions();
-      }
-    }
-  }, [open, user, selectedProjectId]);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       const projectsData = await projectApi.getProjects();
       setProjects(projectsData.map((p) => ({ id: p.id, name: p.name })));
     } catch (err: any) {
       // Ignore project loading errors
     }
-  };
+  }, []);
 
-  const loadPermissions = async () => {
+  const loadPermissions = useCallback(async () => {
     try {
       setLoading(true);
       const result = await userManagementApi.getPermissions(user.id, selectedProjectId || undefined);
@@ -77,7 +68,16 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({ open, onClose, user
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id, selectedProjectId]);
+
+  useEffect(() => {
+    if (open && user) {
+      loadProjects();
+      if (selectedProjectId) {
+        loadPermissions();
+      }
+    }
+  }, [open, user, selectedProjectId, loadProjects, loadPermissions]);
 
   const handlePermissionToggle = async (resource: string, action: string, granted: boolean) => {
     if (!selectedProjectId) {
