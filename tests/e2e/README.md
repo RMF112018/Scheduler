@@ -1,75 +1,173 @@
-# E2E Tests
+# Phase 13: Production-Grade E2E Test Suite
 
-End-to-end tests for the Construction Scheduling Application using Playwright.
+## Overview
 
-## Setup
-
-1. Install dependencies:
-```bash
-pnpm install
-```
-
-2. Install Playwright browsers:
-```bash
-npx playwright install
-```
-
-3. Ensure test database and Redis are running:
-```bash
-# Using Docker Compose
-pnpm docker:up
-```
-
-## Running Tests
-
-### Run all E2E tests
-```bash
-pnpm test:e2e
-```
-
-### Run tests in UI mode
-```bash
-pnpm test:e2e:ui
-```
-
-### Run tests in headed mode (see browser)
-```bash
-pnpm test:e2e:headed
-```
-
-### Run tests in debug mode
-```bash
-pnpm test:e2e:debug
-```
-
-### Run specific test file
-```bash
-npx playwright test tests/e2e/specs/offline-sync.spec.ts
-```
+This directory contains a comprehensive, tiered End-to-End (E2E) test suite using Playwright for the Construction Scheduling Application. The suite is organized into three tiers based on priority and execution frequency.
 
 ## Test Structure
 
-```
-tests/e2e/
-├── setup.ts              # Test fixtures and page object setup
-├── pages/                # Page Object Models
-│   ├── LoginPage.ts
-│   ├── LookaheadPage.ts
-│   ├── SchedulePage.ts
-│   ├── DashboardPage.ts
-│   └── ApprovalPage.ts
-├── specs/                # Test specifications
-│   ├── offline-sync.spec.ts
-│   ├── approval-workflow.spec.ts
-│   ├── import-export.spec.ts
-│   ├── event-bus.spec.ts
-│   └── role-landing.spec.ts
-├── helpers/              # Test helpers
-│   └── testData.ts       # Test data creation utilities
-└── fixtures/             # Test fixtures (files, images, etc.)
+### Tier 1: Core Critical Paths (Smoke Suite)
+**Priority:** Immediate  
+**Goal:** Prevent broken "plumbing" in Login/Import/Export  
+**Browsers:** Chromium, WebKit  
+**Location:** `specs/tier1-smoke.spec.ts`
+
+**Tests:**
+- Full workflow: Login → Import XER → Update Activity → Verify CPM → Export PDF
+- Gantt chart rendering verification
+- Activity update handling
+
+### Tier 2: GUID Persistence & Offline Integrity (Anti-Planera Suite)
+**Priority:** Critical  
+**Goal:** Prove field data survives P6 re-imports (GUID mapping)  
+**Browsers:** Chromium, Mobile Chrome  
+**Location:** `specs/tier2-guid-persistence.spec.ts`
+
+**Tests:**
+- Offline sync with attachment preservation
+- GUID persistence across XER re-imports
+- 44x44px touch target verification on mobile
+
+### Tier 3: Security & Performance (Vulnerability Suite)
+**Priority:** Beta-Gate  
+**Goal:** Ensure Procore-style RBAC protects the Master Schedule  
+**Browsers:** Chromium only  
+**Location:** `specs/tier3-security-performance.spec.ts`
+
+**Tests:**
+- RBAC enforcement (new_user redirect)
+- Load performance (1000+ activities)
+- API response time verification
+
+### Visual Regression Tests
+**Location:** `specs/visual-regression.spec.ts`
+
+**Tests:**
+- Gantt chart screenshot comparison
+- Activity card screenshot comparison
+- Pending assignment landing page screenshot
+
+## Test Infrastructure
+
+### Page Object Models (POM)
+Located in `pages/`:
+- `LoginPage.ts` - Authentication flows
+- `ScheduleDetailPage.ts` - Schedule management, CPM verification, import/export
+- `LookaheadViewPage.ts` - Lookahead workflows, offline sync, attachments
+- `PendingAssignmentPage.ts` - New user landing screen
+- `SchedulePage.ts` - Schedule list operations
+- `LookaheadPage.ts` - Legacy lookahead operations
+- `DashboardPage.ts` - Dashboard interactions
+- `ApprovalPage.ts` - Approval workflow
+
+### Test Data Factories
+Located in `fixtures/`:
+- `ScheduleFactory.ts` - Create schedules with activities, relationships, baselines
+- `UserFactory.ts` - Create users with various roles (new_user, field_crew, scheduler, etc.)
+
+### Helpers
+Located in `helpers/`:
+- `testData.ts` - Database setup/teardown utilities
+
+## Running Tests
+
+### Run All Tests
+```bash
+pnpm exec playwright test
 ```
 
-## Critical Path Tests
+### Run Specific Tier
+```bash
+# Tier 1 (Smoke)
+pnpm exec playwright test tests/e2e/specs/tier1-smoke.spec.ts
+
+# Tier 2 (GUID Persistence)
+pnpm exec playwright test tests/e2e/specs/tier2-guid-persistence.spec.ts
+
+# Tier 3 (Security & Performance)
+pnpm exec playwright test tests/e2e/specs/tier3-security-performance.spec.ts
+```
+
+### Run on Specific Browser
+```bash
+pnpm exec playwright test --project=chromium
+pnpm exec playwright test --project=webkit
+pnpm exec playwright test --project="Mobile Chrome"
+```
+
+### Run Visual Regression Tests
+```bash
+pnpm exec playwright test tests/e2e/specs/visual-regression.spec.ts
+```
+
+### Update Screenshots
+```bash
+pnpm exec playwright test --update-snapshots
+```
+
+### Run in UI Mode
+```bash
+pnpm exec playwright test --ui
+```
+
+## CI/CD Integration
+
+Tests run automatically on:
+- Push to `main`, `phase-10-beta-readiness`, or `phase-13-e2e` branches
+- Pull requests to `main` or `phase-10-beta-readiness`
+- Manual workflow dispatch
+
+**Workflow:** `.github/workflows/e2e-tests.yml`
+
+**Test Execution:**
+- Tier 1: Runs on Chromium and WebKit (parallel)
+- Tier 2: Runs on Chromium and Mobile Chrome (parallel)
+- Tier 3: Runs on Chromium only
+- Visual Regression: Runs on Chromium only
+
+## Test Data Management
+
+### Database Setup
+Tests use a separate test database (`scheduler_test`) to avoid conflicts with development data.
+
+**Environment Variables:**
+- `TEST_DATABASE_URL` - PostgreSQL connection string for test database
+- `TEST_REDIS_URL` - Redis connection string for test database
+- `JWT_SECRET` - JWT secret for test authentication
+
+### Test Isolation
+Each test suite:
+1. Creates fresh test data in `beforeAll`
+2. Cleans up all data in `afterAll`
+3. Uses unique identifiers (timestamps, random strings) to avoid conflicts
+
+## Key Test Scenarios
+
+### CPM Verification
+Tests verify that Retained Logic CPM calculations work correctly:
+- Activity duration updates trigger CPM recalculation
+- Critical path is correctly identified
+- Finish dates update based on predecessor relationships
+
+### GUID Persistence
+Tests verify the "Anti-Planera" import resilience:
+- Field attachments (photos, notes) remain linked via `persistentInternalGuid`
+- Offline changes sync correctly
+- Re-importing XER with different external IDs preserves field data
+
+### RBAC Enforcement
+Tests verify security boundaries:
+- `new_user` role redirects to pending assignment page
+- `new_user` cannot access project data
+- Authorized users can access their assigned projects
+
+### Performance
+Tests verify application performance:
+- Gantt chart renders smoothly with 1000+ activities
+- API responses complete within 500ms
+- Page remains interactive during large data loads
+
+## Critical Path Tests (Legacy)
 
 ### 1. Offline Sync → Merge Conflict Resolution
 Tests the complete offline sync flow:
@@ -111,75 +209,37 @@ Smoke tests for role-based routing:
 - Executive → Dashboard
 - Superintendent → Approval queue
 
-## Environment Variables
-
-```env
-# Test Database
-TEST_DATABASE_URL=postgresql://user:password@localhost:5432/scheduler_test
-TEST_REDIS_URL=redis://localhost:6379/1
-
-# JWT
-JWT_SECRET=test-jwt-secret-key
-
-# Frontend URL (default: http://localhost:5173)
-FRONTEND_URL=http://localhost:5173
-```
-
-## Page Object Models
-
-All page interactions are abstracted through Page Object Models (POMs) for maintainability:
-
-- `LoginPage` - Login and authentication
-- `LookaheadPage` - Lookahead schedule interactions
-- `SchedulePage` - Master schedule management
-- `DashboardPage` - Executive dashboard
-- `ApprovalPage` - Approval workflow
-
-## Test Data
-
-Test data is created using helper functions in `helpers/testData.ts`:
-- `createE2ECompany()` - Create test company
-- `createE2EUser()` - Create test user with authentication
-- `createE2EProject()` - Create test project
-- `createE2ESchedule()` - Create test schedule
-- `createE2EActivities()` - Create test activities
-- `cleanE2EDatabase()` - Clean up test data
-
-## CI/CD Integration
-
-E2E tests run automatically on:
-- Push to `main`, `develop`, or `phase-10-beta-readiness` branches
-- Pull requests to `main` or `develop`
-
-Test results and Playwright reports are uploaded as artifacts.
-
-## Debugging
-
-1. **Run in headed mode** to see the browser:
-   ```bash
-   pnpm test:e2e:headed
-   ```
-
-2. **Use debug mode** to step through tests:
-   ```bash
-   pnpm test:e2e:debug
-   ```
-
-3. **Use UI mode** for interactive debugging:
-   ```bash
-   pnpm test:e2e:ui
-   ```
-
-4. **View test traces** after a failed test:
-   ```bash
-   npx playwright show-trace trace.zip
-   ```
-
 ## Best Practices
 
-1. **Use Page Object Models** - All page interactions should go through POMs
-2. **Wait for network idle** - Use `waitForLoadState('networkidle')` after navigation
-3. **Use data-testid attributes** - Prefer `data-testid` over CSS selectors
-4. **Clean up test data** - Always clean up in `afterAll` hooks
-5. **Use meaningful test names** - Describe what the test validates
-6. **Keep tests independent** - Each test should be able to run in isolation
+1. **Use Page Object Models** - Encapsulate selectors and actions in POM classes
+2. **Use Test Factories** - Create test data programmatically using factories
+3. **Verify Touch Targets** - Mobile tests verify 44x44px minimum touch targets
+4. **Wait for Network Idle** - Use `waitForLoadState('networkidle')` after navigation
+5. **Clean Up Test Data** - Always clean up in `afterAll` hooks
+6. **Use Meaningful Assertions** - Verify business logic, not just UI presence
+
+## Troubleshooting
+
+### Tests Failing Locally
+1. Ensure test database is running: `docker-compose up -d postgres redis`
+2. Run migrations: `cd backend && pnpm prisma migrate deploy`
+3. Check environment variables match test configuration
+
+### Visual Regression Failures
+1. Review screenshot diffs in `test-results/`
+2. If change is intentional, update baseline: `pnpm exec playwright test --update-snapshots`
+3. Check viewport size matches expected (1280x720 default)
+
+### Flaky Tests
+1. Add explicit waits for async operations
+2. Use `waitForLoadState('networkidle')` after navigation
+3. Increase timeout for slow operations
+4. Check for race conditions in test data setup
+
+## Next Steps
+
+- [ ] Add more visual regression tests for all major screens
+- [ ] Expand Tier 2 tests to cover more offline scenarios
+- [ ] Add performance benchmarks for different schedule sizes
+- [ ] Create test data seed scripts for manual testing
+- [ ] Document test coverage metrics

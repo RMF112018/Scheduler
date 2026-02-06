@@ -29,6 +29,7 @@ export {
 
 export { notificationService, NotificationService } from './notificationService.js';
 export { commentService } from './commentService.js';
+export { p6LogicVerificationService, P6LogicVerificationService } from './p6LogicVerificationService.js';
 
 // Types
 export type {

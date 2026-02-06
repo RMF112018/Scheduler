@@ -19,6 +19,7 @@ import Register from '@components/common/Register';
 import Settings from '@components/settings/Settings';
 import NotFound from '@components/common/NotFound';
 import { UserManagementView } from '@components/admin';
+import PendingAssignmentLanding from '@components/auth/PendingAssignmentLanding';
 
 // Auth wrapper
 import ProtectedRoute from '@components/common/ProtectedRoute';
@@ -47,6 +48,9 @@ function App() {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
+          {/* Pending assignment route (no layout) */}
+          <Route path="/pending-assignment" element={<PendingAssignmentLanding />} />
+          
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/schedules" element={<ScheduleList />} />

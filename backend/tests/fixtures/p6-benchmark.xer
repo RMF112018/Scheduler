@@ -1,0 +1,16 @@
+ERMHDR	19.12	2024-01-01	P6 Benchmark Project	USD
+
+%T	PROJECT
+%F	proj_id	proj_short_name	proj_name
+%R	1	BENCHMARK	P6 Benchmark Schedule
+
+%T	TASK
+%F	task_id	task_code	task_name	target_start_date	target_end_date	target_drtn	early_start_date	early_end_date	late_start_date	late_end_date	phys_complete_pct
+%R	1	A001	Activity A	2024-01-01	2024-01-10	10	2024-01-01	2024-01-10	2024-01-01	2024-01-10	0
+%R	2	B002	Activity B	2024-01-11	2024-01-20	10	2024-01-11	2024-01-20	2024-01-11	2024-01-20	0
+%R	3	C003	Activity C	2024-01-21	2024-01-30	10	2024-01-21	2024-01-30	2024-01-21	2024-01-30	0
+
+%T	TASKPRED
+%F	task_id	pred_task_id	pred_type	lag_hr_cnt
+%R	2	1	FS	0
+%R	3	2	FS	0

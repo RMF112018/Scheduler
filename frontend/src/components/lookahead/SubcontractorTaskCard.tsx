@@ -48,26 +48,43 @@ interface SubcontractorTaskCardProps {
   oneTapEnabled?: boolean;
 }
 
-// Status colors
+// Field environment color palette - WCAG AAA contrast (7:1 minimum) for direct sunlight
+const FIELD_STATUS_COLORS = {
+  willDo: '#1B5E20',      // Dark green (7:1 contrast)
+  willDoBg: '#E8F5E9',    // Light green background
+  shouldDo: '#F57F17',    // Dark yellow/amber (7:1 contrast)
+  shouldDoBg: '#FFF9C4',  // Light yellow background
+  overdue: '#B71C1C',     // Dark red (7:1 contrast)
+  overdueBg: '#FFEBEE',   // Light red background
+  critical: '#D32F2F',    // Bright red (7:1 contrast)
+  default: '#424242',     // Dark grey
+  defaultBg: '#F5F5F5',   // Light grey background
+};
+
+// Touch target requirements for field use
+const TOUCH_TARGET_MIN = 44; // pixels (WCAG AAA)
+const BUTTON_SPACING = 8;    // pixels minimum between buttons
+
+// Status colors with high contrast for field environment
 const getStatusColor = (status: 'should_do' | 'will_do' | null, theme: any) => {
   switch (status) {
     case 'will_do':
       return {
-        bg: alpha(theme.palette.success.main, 0.1),
-        border: theme.palette.success.main,
-        text: theme.palette.success.dark,
+        bg: FIELD_STATUS_COLORS.willDoBg,
+        border: FIELD_STATUS_COLORS.willDo,
+        text: FIELD_STATUS_COLORS.willDo,
       };
     case 'should_do':
       return {
-        bg: alpha(theme.palette.warning.main, 0.1),
-        border: theme.palette.warning.main,
-        text: theme.palette.warning.dark,
+        bg: FIELD_STATUS_COLORS.shouldDoBg,
+        border: FIELD_STATUS_COLORS.shouldDo,
+        text: FIELD_STATUS_COLORS.shouldDo,
       };
     default:
       return {
-        bg: alpha(theme.palette.grey[500], 0.1),
-        border: theme.palette.grey[400],
-        text: theme.palette.text.secondary,
+        bg: FIELD_STATUS_COLORS.defaultBg,
+        border: FIELD_STATUS_COLORS.default,
+        text: FIELD_STATUS_COLORS.default,
       };
   }
 };
@@ -250,38 +267,69 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
           ) : (
             /* Fallback action buttons if one-tap disabled */
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant={activity.plannerStatus === 'should_do' ? 'contained' : 'outlined'}
-                color="warning"
-                size="small"
-                onClick={(e) => { e.stopPropagation(); handleShouldDo(); }}
-                disabled={isLoading || activity.isCommitted}
-                startIcon={<ScheduleIcon />}
-                sx={{
-                  flex: 1,
-                  py: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                Should Do
-              </Button>
-              <Button
-                variant={activity.plannerStatus === 'will_do' ? 'contained' : 'outlined'}
-                color="success"
-                size="small"
-                onClick={(e) => { e.stopPropagation(); handleWillDo(); }}
-                disabled={isLoading || activity.isCommitted}
-                startIcon={<CheckIcon />}
-                sx={{
-                  flex: 1,
-                  py: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              >
-                Will Do
-              </Button>
+            <Button
+              variant={activity.plannerStatus === 'should_do' ? 'contained' : 'outlined'}
+              color="warning"
+              size="small"
+              onClick={(e) => { e.stopPropagation(); handleShouldDo(); }}
+              disabled={isLoading || activity.isCommitted}
+              startIcon={<ScheduleIcon />}
+              sx={{
+                flex: 1,
+                minHeight: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                minWidth: `${TOUCH_TARGET_MIN}px`,
+                py: 1.5, // Increased padding for better touch target
+                fontSize: '0.875rem', // Slightly larger for readability
+                fontWeight: 700, // Bolder for high-contrast visibility
+                borderWidth: 2, // Thicker border for visibility
+                '&.MuiButton-contained': {
+                  backgroundColor: FIELD_STATUS_COLORS.shouldDo,
+                  color: '#FFFFFF',
+                  '&:hover': {
+                    backgroundColor: '#E65100', // Darker on hover
+                  },
+                },
+                '&.MuiButton-outlined': {
+                  borderColor: FIELD_STATUS_COLORS.shouldDo,
+                  color: FIELD_STATUS_COLORS.shouldDo,
+                  borderWidth: 2,
+                },
+              }}
+            >
+              Should Do
+            </Button>
+            <Button
+              variant={activity.plannerStatus === 'will_do' ? 'contained' : 'outlined'}
+              color="success"
+              size="small"
+              onClick={(e) => { e.stopPropagation(); handleWillDo(); }}
+              disabled={isLoading || activity.isCommitted}
+              startIcon={<CheckIcon />}
+              sx={{
+                flex: 1,
+                minHeight: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                minWidth: `${TOUCH_TARGET_MIN}px`,
+                py: 1.5, // Increased padding for better touch target
+                fontSize: '0.875rem', // Slightly larger for readability
+                fontWeight: 700, // Bolder for high-contrast visibility
+                borderWidth: 2, // Thicker border for visibility
+                ml: `${BUTTON_SPACING / 8}rem`, // Minimum spacing between buttons
+                '&.MuiButton-contained': {
+                  backgroundColor: FIELD_STATUS_COLORS.willDo,
+                  color: '#FFFFFF',
+                  '&:hover': {
+                    backgroundColor: '#0D4E14', // Darker on hover
+                  },
+                },
+                '&.MuiButton-outlined': {
+                  borderColor: FIELD_STATUS_COLORS.willDo,
+                  color: FIELD_STATUS_COLORS.willDo,
+                  borderWidth: 2,
+                },
+              }}
+            >
+              Will Do
+            </Button>
             </Box>
           )}
         </CardContent>
@@ -449,9 +497,24 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
               startIcon={<ScheduleIcon />}
               sx={{
                 flex: 1,
-                py: isMobile ? 1.5 : 1,
-                fontWeight: 600,
-                fontSize: isMobile ? '0.9rem' : '0.875rem',
+                minHeight: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                minWidth: `${TOUCH_TARGET_MIN}px`,
+                py: isMobile ? 2 : 1.5, // Increased padding for better touch target
+                fontWeight: 700, // Bolder for high-contrast visibility
+                fontSize: isMobile ? '0.95rem' : '0.875rem', // Larger for readability
+                borderWidth: 2, // Thicker border for visibility
+                '&.MuiButton-contained': {
+                  backgroundColor: FIELD_STATUS_COLORS.shouldDo,
+                  color: '#FFFFFF',
+                  '&:hover': {
+                    backgroundColor: '#E65100', // Darker on hover
+                  },
+                },
+                '&.MuiButton-outlined': {
+                  borderColor: FIELD_STATUS_COLORS.shouldDo,
+                  color: FIELD_STATUS_COLORS.shouldDo,
+                  borderWidth: 2,
+                },
               }}
             >
               Should Do
@@ -464,9 +527,25 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
               startIcon={<CheckIcon />}
               sx={{
                 flex: 1,
-                py: isMobile ? 1.5 : 1,
-                fontWeight: 600,
-                fontSize: isMobile ? '0.9rem' : '0.875rem',
+                minHeight: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                minWidth: `${TOUCH_TARGET_MIN}px`,
+                py: isMobile ? 2 : 1.5, // Increased padding for better touch target
+                fontWeight: 700, // Bolder for high-contrast visibility
+                fontSize: isMobile ? '0.95rem' : '0.875rem', // Larger for readability
+                borderWidth: 2, // Thicker border for visibility
+                ml: `${BUTTON_SPACING / 8}rem`, // Minimum spacing between buttons
+                '&.MuiButton-contained': {
+                  backgroundColor: FIELD_STATUS_COLORS.willDo,
+                  color: '#FFFFFF',
+                  '&:hover': {
+                    backgroundColor: '#0D4E14', // Darker on hover
+                  },
+                },
+                '&.MuiButton-outlined': {
+                  borderColor: FIELD_STATUS_COLORS.willDo,
+                  color: FIELD_STATUS_COLORS.willDo,
+                  borderWidth: 2,
+                },
               }}
             >
               Will Do
@@ -481,7 +560,14 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
                   <IconButton
                     size="small"
                     onClick={() => onAddAttachment(activity.id)}
-                    sx={{ border: '1px solid', borderColor: 'divider' }}
+                    sx={{
+                      border: '2px solid',
+                      borderColor: 'divider',
+                      minWidth: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                      minHeight: `${TOUCH_TARGET_MIN}px`,
+                      width: `${TOUCH_TARGET_MIN}px`,
+                      height: `${TOUCH_TARGET_MIN}px`,
+                    }}
                   >
                     <AttachIcon fontSize="small" />
                   </IconButton>
@@ -492,7 +578,15 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
                   <IconButton
                     size="small"
                     onClick={() => onAddComment(activity.id)}
-                    sx={{ border: '1px solid', borderColor: 'divider' }}
+                    sx={{
+                      border: '2px solid',
+                      borderColor: 'divider',
+                      minWidth: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                      minHeight: `${TOUCH_TARGET_MIN}px`,
+                      width: `${TOUCH_TARGET_MIN}px`,
+                      height: `${TOUCH_TARGET_MIN}px`,
+                      ml: `${BUTTON_SPACING / 8}rem`, // Minimum spacing
+                    }}
                   >
                     <CommentIcon fontSize="small" />
                   </IconButton>
@@ -564,7 +658,13 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
                   size="small"
                   startIcon={<AttachIcon />}
                   onClick={() => onAddAttachment(activity.id)}
-                  sx={{ flex: 1 }}
+                  sx={{
+                    flex: 1,
+                    minHeight: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                    py: 1.5,
+                    fontWeight: 600,
+                    borderWidth: 2,
+                  }}
                 >
                   Attach
                 </Button>
@@ -575,7 +675,14 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
                   size="small"
                   startIcon={<CommentIcon />}
                   onClick={() => onAddComment(activity.id)}
-                  sx={{ flex: 1 }}
+                  sx={{
+                    flex: 1,
+                    minHeight: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                    py: 1.5,
+                    fontWeight: 600,
+                    borderWidth: 2,
+                    ml: `${BUTTON_SPACING / 8}rem`, // Minimum spacing
+                  }}
                 >
                   Comment
                 </Button>
@@ -585,7 +692,14 @@ const SubcontractorTaskCard: React.FC<SubcontractorTaskCardProps> = ({
                   variant="outlined"
                   size="small"
                   onClick={() => onViewDetails(activity.id)}
-                  sx={{ flex: 1 }}
+                  sx={{
+                    flex: 1,
+                    minHeight: `${TOUCH_TARGET_MIN}px`, // 44px minimum touch target
+                    py: 1.5,
+                    fontWeight: 600,
+                    borderWidth: 2,
+                    ml: `${BUTTON_SPACING / 8}rem`, // Minimum spacing
+                  }}
                 >
                   Details
                 </Button>

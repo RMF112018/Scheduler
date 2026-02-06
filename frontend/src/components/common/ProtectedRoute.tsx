@@ -37,6 +37,14 @@ const ProtectedRoute: React.FC = () => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Redirect new_user role to pending assignment page
+  if (user?.role && user.role.toLowerCase().replace(/\s+/g, '_') === 'new_user') {
+    // Only redirect if not already on the pending assignment page
+    if (location.pathname !== '/pending-assignment') {
+      return <Navigate to="/pending-assignment" replace />;
+    }
+  }
+
   return <Outlet />;
 };
 
